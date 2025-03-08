@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>pkpm.echobot</groupId> <!-- Ідентифікатор організації/пакету -->
+  <artifactId>echobot</artifactId> <!-- Назва проєкту -->
+  <version>1.0</version> <!-- Версія проєкту -->
+  <packaging>jar</packaging>
+
+  <name>ServerMessenger</name>
+
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies> <!-- Список бібліотек -->
+    <!-- Додаємо залежності тут -->
+    <!-- Lombok (зменшує кількість коду) -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.24</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- JUnit для тестування -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>8.0.0.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>8.0.0.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.telegram</groupId>
+      <artifactId>telegrambots</artifactId>
+      <version>6.1.0</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>assembly</id>
+      <activation>
+        <activeByDefault>true</activeByDefault> <!-- default profile -->
+      </activation>
+      <build>
+        <plugins>
+<!--          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.22.0</version>
+          </plugin>-->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.0.2</version>
+            <configuration>
+              <archive>
+                <manifest>
+                  <addClasspath>true</addClasspath>
+                  <mainClass>pkpm.echobot.app.App</mainClass>
+                  <!--<classpathPrefix>lib/</classpathPrefix>-->
+                </manifest>
+                <manifestEntries>
+                  <Class-Path>config/</Class-Path>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </plugin> <!--maven-jar-plugin
+          This plugin provides the capability to build jars. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.4.2</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/resources/assembly.xml</descriptor>
+                  </descriptors>
+                  <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <formats>
+                <!-- Упаковывает в zip-архив -->
+                <format>zip</format>
+              </formats>
+              <archive>
+                <manifest>
+                  <mainClass>pkpm.echobot.app.App</mainClass>
+                  <addClasspath>true</addClasspath>
+                </manifest>
+              </archive>
+              <descriptorSourceDirectory>src/main/resources/assembly.xml</descriptorSourceDirectory>
+            </configuration>
+          </plugin> <!--maven-assembly-plugin-->
+          <!--The Assembly Plugin for Maven enables developers to combine project output into
+          a single distributable archive that also contains dependencies, modules,
+          site documentation, and other files.-->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.8</version>
+            <executions>
+              <execution>
+                <id>copy-dependencies</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <!-- exclude junit, we need runtime dependency only -->
+                  <includeScope>runtime</includeScope>
+                  <outputDirectory>${project.build.directory}/lib/</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin> <!--maven-dependency-plugin-->
+          <!--The dependency plugin provides the capability to manipulate artifacts.
+          It can copy and/or unpack artifacts from local or remote repositories
+          to a specified location.-->
+        </plugins>
+        <resources> <!-- вказуємо плагіну resources, щоб він не включав відповідні файли -->
+          <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+            <excludes>
+              <exclude>**/app.properties</exclude>
+            </excludes>
+          </resource>
+        </resources>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

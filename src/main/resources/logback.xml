@@ -1,0 +1,17 @@
+<configuration>
+
+  # Console appender
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%date %highlight(%-5level) - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="shpp.com.services.Receiver" level="DEBUG" additivity="false">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+  <root level="DEBUG">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
