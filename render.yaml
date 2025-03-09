@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: pkpm-telegram-bot
+    env: docker
+    plan: free
+    repo: https://github.com/username/repo-name
+    branch: main
+    rootDir: /
+    dockerfilePath: Dockerfile
+    autoDeploy: true

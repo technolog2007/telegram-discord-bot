@@ -1,4 +1,4 @@
-package pkpm.echobot.services;
+package pkpm.telegrambot.services;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;

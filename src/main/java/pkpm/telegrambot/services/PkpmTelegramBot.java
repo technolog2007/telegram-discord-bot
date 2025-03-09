@@ -1,17 +1,16 @@
-package pkpm.echobot.services;
+package pkpm.telegrambot.services;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import pkpm.echobot.util.PropertiesLoader;
+import pkpm.telegrambot.util.PropertiesLoader;
 
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {

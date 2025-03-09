@@ -4,8 +4,8 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>pkpm.echobot</groupId> <!-- Ідентифікатор організації/пакету -->
-  <artifactId>echobot</artifactId> <!-- Назва проєкту -->
+  <groupId>pkpm.telegrambot</groupId> <!-- Ідентифікатор організації/пакету -->
+  <artifactId>telegrambot</artifactId> <!-- Назва проєкту -->
   <version>1.0</version> <!-- Версія проєкту -->
   <packaging>jar</packaging>
 
@@ -81,7 +81,7 @@
               <archive>
                 <manifest>
                   <addClasspath>true</addClasspath>
-                  <mainClass>pkpm.echobot.app.App</mainClass>
+                  <mainClass>pkpm.telegrambot.app.App</mainClass>
                   <!--<classpathPrefix>lib/</classpathPrefix>-->
                 </manifest>
                 <manifestEntries>
@@ -116,7 +116,7 @@
               </formats>
               <archive>
                 <manifest>
-                  <mainClass>pkpm.echobot.app.App</mainClass>
+                  <mainClass>pkpm.telegrambot.app.App</mainClass>
                   <addClasspath>true</addClasspath>
                 </manifest>
               </archive>

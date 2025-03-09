@@ -1,11 +1,11 @@
-package pkpm.echobot.util;
+package pkpm.telegrambot.util;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
-import pkpm.echobot.app.App;
+import pkpm.telegrambot.app.App;
 
 @Slf4j
 public class PropertiesLoader {
