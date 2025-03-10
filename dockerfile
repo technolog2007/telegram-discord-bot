@@ -19,9 +19,10 @@ RUN mvn clean package
 # Розпаковка zip-архіву, створеного Maven
 RUN unzip target/*.zip -d /app/
 
-# # Додаємо змінну середовища для конфігів
-# ENV APP_PROPERTIES=""
+# Додаємо змінну середовища для конфігів
+ENV APP_PROPERTIES=""
 
 # Команда запуску JAR-файлу
-CMD echo "$APP_PROPERTIES" > config/app.properties && \
-    java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
+# CMD echo "$APP_PROPERTIES" > config/app.properties && \
+#     java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
+ENTRYPOINT ["sh", "-c", "echo \"$APP_PROPERTIES\" > config/app.properties && java -cp \"lib/*:config/*:.\" -jar telegrambot-1.0.jar"]
