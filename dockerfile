@@ -15,5 +15,8 @@ RUN apt-get update && apt-get install -y unzip && \
 # Перевірка структури (для відладки)
 RUN ls -la /app
 
+CMD echo "$APP_PROPERTIES" > config/app.properties && \
+    java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
+
 # Виставляємо команду для запуску бота
 CMD ["java", "-cp", "lib/*:config/*:.", "-jar", "telegrambot-1.0.jar"]
