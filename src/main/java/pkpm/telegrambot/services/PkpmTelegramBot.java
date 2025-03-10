@@ -28,16 +28,25 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private String sendMessage = "";
 
   private DiscordNotifier notifier = new DiscordNotifier(
-      new PropertiesLoader().loadProperties().getProperty("web_hook_discord"));
+      checkAppPropertiesOrEnvVar("web_hook_discord"));
 
   @Override
   public String getBotUsername() {
-    return new PropertiesLoader().loadProperties().getProperty("bot_user_name");
+    return checkAppPropertiesOrEnvVar("bot_user_name");
   }
 
   @Override
   public String getBotToken() {
-    return new PropertiesLoader().loadProperties().getProperty("token");
+    return checkAppPropertiesOrEnvVar("token");
+  }
+
+  private String checkAppPropertiesOrEnvVar(String key){
+    String property = new PropertiesLoader().loadProperties().getProperty(key);
+    if (property != null) {
+      return property;
+    } else {
+      return System.getenv(key);
+    }
   }
 
   @Override
@@ -48,7 +57,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     boolean flagUserChat = update.getMessage().getChat().isUserChat();
     boolean flagHasText = update.getMessage().hasText();
     Long groupId = Long.parseLong(
-        new PropertiesLoader().loadProperties().getProperty("group_test_id"));
+        checkAppPropertiesOrEnvVar("group_test_id"));
     log.info("Update 1 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
         secondPress);
     firstPress = checkWhichButtonFirstIsPress(update, flagUserChat);

@@ -17,7 +17,6 @@ public class App {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
     try {
       log.info("Registering bot...");
-      log.info("token is : {}", new PropertiesLoader().loadProperties().get("token"));
       telegramBotsApi.registerBot(new PkpmTelegramBot());
     } catch (TelegramApiRequestException e) {
       log.error(
