@@ -4,6 +4,9 @@ FROM openjdk:17-jdk-slim
 # Встановлення Maven
 RUN apt-get update && apt-get install -y maven
 
+# Встановлення zip-архіватора
+RUN apt-get update && apt-get install -y unzip
+
 # Створюємо робочу директорію всередині контейнера
 WORKDIR /app
 
