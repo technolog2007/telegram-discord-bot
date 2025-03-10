@@ -1,8 +1,19 @@
-# Базовий образ для JDK 17 (або інший, залежно від твого проєкту)
-FROM eclipse-temurin:17-jdk
-# Встановлення робочої директорії
+# Базовий образ з JDK 17
+FROM openjdk:17-jdk-slim
+
+# Створюємо робочу директорію всередині контейнера
 WORKDIR /app
-# Копіювання jar-файлу в контейнер
-COPY target/*.jar echobot-1.0.jar
-# Запуск програми
-CMD ["java", "-jar", "echobot-1.0.jar"]
+
+# Копіюємо зібраний zip-архів до контейнера
+COPY target/telegrambot-1.0.zip /app/
+
+# Розпаковуємо архів
+RUN apt-get update && apt-get install -y unzip && \
+    unzip telegrambot-1.0.zip && \
+    rm telegrambot-1.0.zip
+
+# Перевірка структури (для відладки)
+RUN ls -la /app
+
+# Виставляємо команду для запуску бота
+CMD ["java", "-cp", "lib/*:config/*:.", "-jar", "telegrambot-1.0.jar"]
