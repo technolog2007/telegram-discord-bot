@@ -19,8 +19,9 @@ RUN mvn clean package
 # Розпаковка zip-архіву, створеного Maven
 RUN unzip target/*.zip -d /app/
 
-# Копіюємо конфігураційний файл з секретами
-COPY --from=render-secret /secrets/APP_PROPERTIES /app/config/app.properties
+# Копіюємо конфігураційний файл з секретами з Render
+# Секрети в Render зазвичай доступні за шляхом /secrets
+COPY /secrets/APP_PROPERTIES /app/config/app.properties
 
 # Переконайтесь, що файл скопійовано правильно
 RUN cat /app/config/app.properties
