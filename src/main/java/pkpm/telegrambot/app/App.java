@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pkpm.telegrambot.services.PkpmTelegramBot;
+import pkpm.telegrambot.util.PropertiesLoader;
 
 public class App {
 
@@ -16,6 +17,7 @@ public class App {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
     try {
       log.info("Registering bot...");
+      log.info("token is : {}", new PropertiesLoader().loadProperties().get("token"));
       telegramBotsApi.registerBot(new PkpmTelegramBot());
     } catch (TelegramApiRequestException e) {
       log.error(

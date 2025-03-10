@@ -19,8 +19,8 @@ RUN mvn clean package
 # Розпаковка zip-архіву, створеного Maven
 RUN unzip target/*.zip -d /app/
 
-# Додаємо змінну середовища для конфігів
-ENV APP_PROPERTIES=""
+# # Додаємо змінну середовища для конфігів
+# ENV APP_PROPERTIES=""
 
 # Команда запуску JAR-файлу
 CMD echo "$APP_PROPERTIES" > config/app.properties && \
