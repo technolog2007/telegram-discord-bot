@@ -1,22 +1,24 @@
 # Базовий образ з JDK 17
 FROM openjdk:17-jdk-slim
 
+# Встановлення Maven
+RUN apt-get update && apt-get install -y maven
+
 # Створюємо робочу директорію всередині контейнера
 WORKDIR /app
 
-# Копіюємо зібраний zip-архів до контейнера
-COPY target/telegrambot-1.0.zip /app/
+# Копіюємо всі файли проєкту (включаючи pom.xml та вихідний код)
+COPY . .
 
-# Розпаковуємо архів
-RUN apt-get update && apt-get install -y unzip && \
-    unzip telegrambot-1.0.zip && \
-    rm telegrambot-1.0.zip
+# Виконуємо збірку проєкту за допомогою Maven
+RUN mvn clean package
 
-# Перевірка структури (для відладки)
-RUN ls -la /app
+# Розпаковка zip-архіву, створеного Maven
+RUN unzip target/*.zip -d /app/
 
+# Додаємо змінну середовища для конфігів
+ENV APP_PROPERTIES=""
+
+# Команда запуску JAR-файлу
 CMD echo "$APP_PROPERTIES" > config/app.properties && \
     java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
-
-# Виставляємо команду для запуску бота
-CMD ["java", "-cp", "lib/*:config/*:.", "-jar", "telegrambot-1.0.jar"]
