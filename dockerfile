@@ -19,10 +19,11 @@ RUN mvn clean package
 # Розпаковка zip-архіву, створеного Maven
 RUN unzip target/*.zip -d /app/
 
-# Додаємо змінну середовища для конфігів
-ENV APP_PROPERTIES=""
+# Копіюємо конфігураційний файл з секретами
+COPY --from=render-secret /secrets/APP_PROPERTIES /app/config/app.properties
 
-# Команда запуску JAR-файлу
-# CMD echo "$APP_PROPERTIES" > config/app.properties && \
-#     java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
-ENTRYPOINT ["sh", "-c", "echo \"$APP_PROPERTIES\" > config/app.properties && java -cp \"lib/*:config/*:.\" -jar telegrambot-1.0.jar"]
+# Переконайтесь, що файл скопійовано правильно
+RUN cat /app/config/app.properties
+
+# Команда для запуску додатку
+CMD java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
