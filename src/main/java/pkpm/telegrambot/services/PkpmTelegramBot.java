@@ -14,16 +14,17 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
+  private static final String START_TEXT = "⬇️ Натисніть відповідну кнопку:";
   private final Map<Long, String> input = new HashMap<>();
   private String firstPress = null;
   private String secondPress = null;
-  private final String button1 = "\uD83D\uDCC1 Нова вкладка";
-  private final String button2 = "\uD83D\uDCCB Нові позиції";
-  private final String button3 = "\uD83D\uDD04 Зміни";
-  private final String button4 = "✅ Підтвердити";
-  private final String button5 = "❌ Скасувати";
-  private final String acceptMessage = "Повідомлення відправлено!\uD83D\uDE80";
-  private final String negativeMessage = "Повідомлення не відправлено!\uD83D\uDEAB";
+  private static final String BUTTON_1 = "\uD83D\uDCC1 Нова вкладка";
+  private static final String BUTTON_2 = "\uD83D\uDCCB Нові позиції";
+  private static final String BUTTON_3 = "\uD83D\uDD04 Зміни";
+  private static final String BUTTON_4 = "✅ Підтвердити";
+  private static final String BUTTON_5 = "❌ Скасувати";
+  private static final String ACCEPT_MESSAGE = "Повідомлення відправлено!\uD83D\uDE80";
+  private static final String NEGATIVE_MESSAGE = "Повідомлення не відправлено!\uD83D\uDEAB";
   private String sendMessage = "";
 
   private DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
@@ -67,46 +68,47 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private void firstPress(Long chatId, String userName, boolean flagUserChat, boolean flagHasText,
       String message) {
     if (flagUserChat && flagHasText && firstPress != null && secondPress == null) {
-      if (firstPress.equals(button1) && !message.equals(button1)) {
-        sendText(chatId, "Буде надіслано наступне повідомлення :");
+      if (firstPress.equals(BUTTON_1) && !message.equals(BUTTON_1)) {
+        sendMessage(createMessage(chatId, "Буде надіслано наступне повідомлення :"));
         sendMessage = "Додана нова вкладка : \"" + message + "\"";
         sendReplyButtons(chatId, sendMessage);
       }
-      if (firstPress.equals(button2) && !message.equals(button2)) {
-        sendText(chatId, "Буде надіслано наступне повідомлення :");
+      if (firstPress.equals(BUTTON_2) && !message.equals(BUTTON_2)) {
+        sendMessage(createMessage(chatId, "Буде надіслано наступне повідомлення :"));
         sendMessage = "Додані нові позиції на вкладку : \"" + message + "\"";
         sendReplyButtons(chatId, sendMessage);
       }
-      if (firstPress.equals(button3)) {
+      if (firstPress.equals(BUTTON_3)) {
         sendReplyButtons(chatId, "Ви впевнені, що хочете внести зміни?");
       }
     }
   }
-  private void secondPress(boolean flagUserChat, boolean flagHasText, Long groupId, Long chatId){
+
+  private void secondPress(boolean flagUserChat, boolean flagHasText, Long groupId, Long chatId) {
     if (flagUserChat && flagHasText && firstPress != null && secondPress != null) {
       if (secondPress.equals("Підтвердити створення нової вкладки")) {
-        sendText(groupId, sendMessage);
+        sendMessage(createMessage(groupId, sendMessage));
         notifier.sendMessage(sendMessage);
-        sendText(chatId, acceptMessage);
+        sendMessage(createMessage(chatId, ACCEPT_MESSAGE));
       }
       if (secondPress.equals("Скасувати створення нової вкладки")) {
-        sendText(chatId, negativeMessage);
+        sendMessage(createMessage(chatId, NEGATIVE_MESSAGE));
       }
       if (secondPress.equals("Підтвердити додавання нових позицій")) {
-        sendText(groupId, sendMessage);
+        sendMessage(createMessage(groupId, sendMessage));
         notifier.sendMessage(sendMessage);
-        sendText(chatId, acceptMessage);
+        sendMessage(createMessage(chatId, ACCEPT_MESSAGE));
       }
       if (secondPress.equals("Скасувати додавання нових позицій")) {
-        sendText(chatId, negativeMessage);
+        sendMessage(createMessage(chatId, NEGATIVE_MESSAGE));
       }
       if (secondPress.equals("Підтвердити зміни")) {
-        sendText(groupId, "Додані нові позиції на вкладку \"Зміни\"");
+        sendMessage(createMessage(groupId, "Додані нові позиції на вкладку \"Зміни\""));
         notifier.sendMessage("Додані нові позиції на вкладку \"Зміни\"");
-        sendText(chatId, acceptMessage);
+        sendMessage(createMessage(chatId, ACCEPT_MESSAGE));
       }
       if (secondPress.equals("Скасувати зміни")) {
-        sendText(chatId, negativeMessage);
+        sendMessage(createMessage(chatId, NEGATIVE_MESSAGE));
       }
       firstPress = null;
       secondPress = null;
@@ -117,19 +119,19 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private String checkWhichButtonSecondIsPress(Update update) {
     String messageText = update.getMessage().getText();
     if (firstPress != null && secondPress == null) {
-      if (firstPress.equals(button1) && messageText.equals(button4)) {
+      if (firstPress.equals(BUTTON_1) && messageText.equals(BUTTON_4)) {
         return "Підтвердити створення нової вкладки";
-      } else if ((firstPress.equals(button1) && messageText.equals(button5))) {
+      } else if ((firstPress.equals(BUTTON_1) && messageText.equals(BUTTON_5))) {
         return "Скасувати створення нової вкладки";
       }
-      if (firstPress.equals(button2) && messageText.equals(button4)) {
+      if (firstPress.equals(BUTTON_2) && messageText.equals(BUTTON_4)) {
         return "Підтвердити додавання нових позицій";
-      } else if ((firstPress.equals(button2) && messageText.equals(button5))) {
+      } else if ((firstPress.equals(BUTTON_2) && messageText.equals(BUTTON_5))) {
         return "Скасувати додавання нових позицій";
       }
-      if (firstPress.equals(button3) && messageText.equals(button4)) {
+      if (firstPress.equals(BUTTON_3) && messageText.equals(BUTTON_4)) {
         return "Підтвердити зміни";
-      } else if ((firstPress.equals(button3) && messageText.equals(button5))) {
+      } else if ((firstPress.equals(BUTTON_3) && messageText.equals(BUTTON_5))) {
         return "Скасувати зміни";
       }
     }
@@ -138,14 +140,14 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   private String checkWhichButtonFirstIsPress(Update update, boolean flagUserChat) {
     String messageText = update.getMessage().getText();
-    if (flagUserChat && button1.equals(messageText)) {
-      sendText(update.getMessage().getChatId(), "Введіть позначення вкладки:");
+    Long chatId = update.getMessage().getChatId();
+    if (flagUserChat && BUTTON_1.equals(messageText)) {
+      sendMessage(createMessage(chatId, "Введіть позначення вкладки:"));
       return messageText;
-    } else if (flagUserChat && button2.equals(messageText)) {
-      sendText(update.getMessage().getChatId(),
-          "Введіть позначення вкладки на яку додані позиції:");
+    } else if (flagUserChat && BUTTON_2.equals(messageText)) {
+      sendMessage(createMessage(chatId, "Введіть позначення вкладки на яку додані позиції:"));
       return messageText;
-    } else if (flagUserChat && button3.equals(messageText)) {
+    } else if (flagUserChat && BUTTON_3.equals(messageText)) {
       return messageText;
     } else if (firstPress != null) {
       return firstPress;
@@ -172,46 +174,36 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @param chatId - id відповідного чату
    */
   private void sendMenu(Long chatId) {
-    SendMessage message = new SendMessage();
-    message.setChatId(chatId);
-    message.setText("⬇\uFE0F Натисніть відповідну кнопку:");
+    SendMessage message = SendMessage.builder().chatId(chatId).text(START_TEXT).build();
+    String[] firstRow = {BUTTON_1, BUTTON_2};
+    String[] secondRow = {BUTTON_3};
 
-    ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+    ReplyKeyboardMarkup keyboardMarkup = ReplyKeyboardBuilder.createMultiRowKeyboard(
+        List.of(firstRow, secondRow));
     keyboardMarkup.setResizeKeyboard(true);
     keyboardMarkup.setOneTimeKeyboard(false);
     keyboardMarkup.setSelective(true);
 
-    List<KeyboardRow> keyboard = new ArrayList<>();
-    KeyboardRow rowHigh = new KeyboardRow();
-    rowHigh.add(button1); // кнопка для введення тексту
-    rowHigh.add(button2);
-
-    KeyboardRow rowLow = new KeyboardRow();
-    rowLow.add(button3);
-
-    keyboard.add(rowHigh);
-    keyboard.add(rowLow);
-
-    keyboardMarkup.setKeyboard(keyboard);
     message.setReplyMarkup(keyboardMarkup);
+    sendMessage(message);
+  }
 
-    try {
-      execute(message);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+  /**
+   * Метод створює і надсилає текстове повідомлення в чат
+   *
+   * @param chatId  - id чата
+   * @param message - повідомлення
+   */
+  private SendMessage createMessage(Long chatId, String message) {
+    return SendMessage.builder().chatId(chatId).text(message).build();
   }
 
   /**
    * Метод створює і надсилає у відповідний чат повідомлення
    *
-   * @param chatId - id чата
-   * @param text   - повідомлення
+   * @param message
    */
-  private void sendText(Long chatId, String text) {
-    SendMessage message = new SendMessage();
-    message.setChatId(chatId);
-    message.setText(text);
+  private void sendMessage(SendMessage message) {
     try {
       execute(message);
     } catch (Exception e) {
@@ -224,8 +216,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     keyboardMarkup.setResizeKeyboard(true);
 
     KeyboardRow row = new KeyboardRow();
-    row.add(button4);
-    row.add(button5);
+    row.add(BUTTON_4);
+    row.add(BUTTON_5);
 
     List<KeyboardRow> keyboard = new ArrayList<>();
     keyboard.add(row);

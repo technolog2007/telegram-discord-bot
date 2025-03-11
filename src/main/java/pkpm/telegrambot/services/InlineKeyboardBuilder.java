@@ -34,7 +34,7 @@ public class InlineKeyboardBuilder {
     return createInlineKeyboard(keyboard);
   }
 
-  public static InlineKeyboardMarkup createSingleRowKeyBoard(String... buttons) {
+  public static InlineKeyboardMarkup createSingleRowKeyboard(String... buttons) {
     return createInlineKeyboard(List.of(createRow(buttons)));
   }
 
