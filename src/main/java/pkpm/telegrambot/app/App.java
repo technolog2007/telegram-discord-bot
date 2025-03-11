@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pkpm.telegrambot.services.PkpmTelegramBot;
-import pkpm.telegrambot.util.PropertiesLoader;
 
 public class App {
 
