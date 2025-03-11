@@ -23,4 +23,4 @@ RUN unzip target/*.zip -d /app/
 EXPOSE 8080
 
 # Запуск додатку
-CMD java -cp "lib/*:config/*:." -jar telegrambot-1.0.jare
+CMD java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar
