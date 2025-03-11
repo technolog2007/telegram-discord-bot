@@ -10,8 +10,7 @@ http://maven.apache.org/ASSEMBLY/2.1.1 ">
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/src/main/resources</directory>
-            <!--    Создание папки config в архиве -->
-            <outputDirectory>config/</outputDirectory>
+            <outputDirectory>/config/</outputDirectory>
             <includes>
                 <include>*.properties</include>
                 <include>logback.xml</include>
@@ -28,9 +27,7 @@ http://maven.apache.org/ASSEMBLY/2.1.1 ">
     <!--    Создание папки lib в архиве -->
     <dependencySets>
         <dependencySet>
-            <outputDirectory>lib/</outputDirectory>
-            <scope>runtime</scope>
-            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>/lib</outputDirectory>
         </dependencySet>
     </dependencySets>
 </assembly>

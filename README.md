@@ -1,10 +1,10 @@
 # telegram-discord-bot
 
-## Launch
+## Запуск
 
-1.  Unzip the ZIP archive.
-2.  Go to the directory where the JAR file is located.
-3.  Run the project using the command:
+1.  Розархівуйте ZIP-архів.
+2.  Перейдіть до каталогу, де знаходиться JAR-файл.
+3.  Запустіть проєкт за допомогою команди:
 
     ```bash
     java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar

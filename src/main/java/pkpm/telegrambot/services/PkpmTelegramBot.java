@@ -10,7 +10,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import pkpm.telegrambot.util.PropertiesLoader;
 
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
@@ -27,26 +26,16 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private final String negativeMessage = "Повідомлення не відправлено!\uD83D\uDEAB";
   private String sendMessage = "";
 
-  private DiscordNotifier notifier = new DiscordNotifier(
-      checkAppPropertiesOrEnvVar("web_hook_discord"));
+  private DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
 
   @Override
   public String getBotUsername() {
-    return checkAppPropertiesOrEnvVar("bot_user_name");
+    return System.getenv("bot_user_name");
   }
 
   @Override
   public String getBotToken() {
-    return checkAppPropertiesOrEnvVar("token");
-  }
-
-  private String checkAppPropertiesOrEnvVar(String key){
-    String property = new PropertiesLoader().loadProperties().getProperty(key);
-    if (property != null) {
-      return property;
-    } else {
-      return System.getenv(key);
-    }
+    return System.getenv("token");
   }
 
   @Override
@@ -56,8 +45,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     Long chatId = update.getMessage().getChatId();
     boolean flagUserChat = update.getMessage().getChat().isUserChat();
     boolean flagHasText = update.getMessage().hasText();
-    Long groupId = Long.parseLong(
-        checkAppPropertiesOrEnvVar("group_test_id"));
+    Long groupId = Long.parseLong(System.getenv("group_test_id"));
     log.info("Update 1 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
         secondPress);
     firstPress = checkWhichButtonFirstIsPress(update, flagUserChat);

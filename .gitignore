@@ -21,3 +21,4 @@ build/
 # Ігноруємо файли конфігів, які не хочеш шарити
 app.properties
 task.txt
+from.env
