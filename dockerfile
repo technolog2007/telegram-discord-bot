@@ -22,6 +22,5 @@ RUN unzip target/*.zip -d /app/
 # Порт для обману Render
 EXPOSE 8080
 
-# Запуск бота + фейковий HTTP-сервер для Render
-CMD java -cp "lib/*:config/*:." -jar telegrambot-1.0.jar & \
-    while true; do { echo -e "HTTP/1.1 200 OK\n\nBot is running"; } | nc -l -p 8080; done
+# Запуск додатку
+CMD java -cp "lib/*:config/*:." -jar telegrambot-1.0.jare
