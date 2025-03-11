@@ -48,14 +48,24 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     Long groupId = Long.parseLong(System.getenv("group_test_id"));
     log.info("Update 1 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
         secondPress);
-    firstPress = checkWhichButtonFirstIsPress(update, flagUserChat);
-    secondPress = checkWhichButtonSecondIsPress(update);
     if (flagUserChat && flagHasText && firstPress == null) {
       sendMenu(chatId);
       input.put(chatId, message);
     }
     log.info("Update 2 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
         secondPress);
+    firstPress = checkWhichButtonFirstIsPress(update, flagUserChat);
+    secondPress = checkWhichButtonSecondIsPress(update);
+    firstPress(chatId, userName, flagUserChat, flagHasText, message);
+    log.info("Update 3 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
+        secondPress);
+    secondPress(flagUserChat, flagHasText, groupId, chatId);
+    log.info("Update 4 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
+        secondPress);
+  }
+
+  private void firstPress(Long chatId, String userName, boolean flagUserChat, boolean flagHasText,
+      String message) {
     if (flagUserChat && flagHasText && firstPress != null && secondPress == null) {
       if (firstPress.equals(button1) && !message.equals(button1)) {
         sendText(chatId, "Буде надіслано наступне повідомлення :");
@@ -71,8 +81,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendReplyButtons(chatId, "Ви впевнені, що хочете внести зміни?");
       }
     }
-    log.info("Update 3 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
-        secondPress);
+  }
+  private void secondPress(boolean flagUserChat, boolean flagHasText, Long groupId, Long chatId){
     if (flagUserChat && flagHasText && firstPress != null && secondPress != null) {
       if (secondPress.equals("Підтвердити створення нової вкладки")) {
         sendText(groupId, sendMessage);
@@ -102,8 +112,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       secondPress = null;
       sendMenu(chatId);
     }
-    log.info("Update 4 : {}, {}, \"{}\", {}, {}", userName, chatId, message, firstPress,
-        secondPress);
   }
 
   private String checkWhichButtonSecondIsPress(Update update) {
@@ -125,7 +133,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         return "Скасувати зміни";
       }
     }
-
     return null;
   }
 
@@ -151,6 +158,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     message.setChatId(chatId);
     message.setText(text);
     message.setReplyMarkup(createConfirmationKeyboard()); // Додаємо клавіатуру
+//    message.setReplyMarkup(InlineKeyboardBuilder.createSingleRowKeyBoard(button4, button5));
     try {
       execute(message); // Відправляємо повідомлення
     } catch (Exception e) {
