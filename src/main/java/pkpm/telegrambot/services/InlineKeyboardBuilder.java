@@ -1,6 +1,7 @@
 package pkpm.telegrambot.services;
 
 import java.util.ArrayList;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -46,4 +47,13 @@ public class InlineKeyboardBuilder {
     }
     return row;
   }
+
+  public static EditMessageReplyMarkup removeKeyboard(Long chatId, Integer messageId){
+    EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup();
+    editMarkup.setMessageId(messageId);
+    editMarkup.setReplyMarkup(null);
+    return editMarkup;
+  }
+
+
 }
