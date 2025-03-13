@@ -167,8 +167,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    *
    * @return - текстовий опис натиснутої кнопки
    */
-  private String checkWhichButtonFirstIsPress(Long chatId,
-      String messageText) {
+  private String checkWhichButtonFirstIsPress(Long chatId, String messageText) {
     if (Buttons.BUTTON_1.getName().equals(messageText)) {
       sendMessage(createMessage(chatId, ChatMessage.INPUT_FOLDER.getMessage()));
       return messageText;
@@ -177,14 +176,14 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       return messageText;
     } else if (Buttons.BUTTON_3.getName().equals(messageText)) {
       return messageText;
-    } else if (menuButton != null) {
+    } else if (menuButton != null) { // уточнити ??
       return menuButton;
     }
     return null;
   }
 
   /**
-   * Мтеод створює додаткову клавіатуру
+   * Метод створює додаткову клавіатуру
    *
    * @param chatId - id чата
    * @param text   - текст повідомлення
