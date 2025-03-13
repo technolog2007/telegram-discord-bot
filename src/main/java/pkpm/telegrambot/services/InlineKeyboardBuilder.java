@@ -50,6 +50,7 @@ public class InlineKeyboardBuilder {
 
   public static EditMessageReplyMarkup removeKeyboard(Long chatId, Integer messageId){
     EditMessageReplyMarkup editMarkup = new EditMessageReplyMarkup();
+    editMarkup.setChatId(chatId);
     editMarkup.setMessageId(messageId);
     editMarkup.setReplyMarkup(null);
     return editMarkup;

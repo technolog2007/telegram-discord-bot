@@ -46,28 +46,31 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     if (update.hasCallbackQuery()) {
       replyButtonPress = update.getCallbackQuery().getData();
       Long chatId = update.getCallbackQuery().getMessage().getChatId();
-//      Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-      replyButtonReaction(getGroupId(), chatId); // логіка в залежності від того яка кнопка меню і яка кнопка підтвердження була натиснута
-      log.info("Update query : {}, {}, {}, {}", chatId, getGroupId(), menuButtonPres,
-          replyButtonPress);
+      Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
+      replyButtonReaction(getGroupId(), chatId, messageId);
+      log.info("Update query : {}, {}, {}, {}, {}", chatId, getGroupId(), menuButtonPres,
+          replyButtonPress, messageId);
     } else if (update.getMessage().getChat().isUserChat() && update.getMessage().hasText()) {
       String userName = update.getMessage().getFrom().getFirstName();
       String message = update.getMessage().getText();
       Long chatId = update.getMessage().getChatId();
       boolean flagUserChat = update.getMessage().getChat().isUserChat();
       boolean flagHasText = update.getMessage().hasText();
-      log.info("Update 1 : {}, {}, \"{}\", {}", userName, chatId, message, menuButtonPres);
-      menuButtonPres = checkWhichButtonFirstIsPress(chatId, message,
-          flagUserChat); // визначенн яка кнопка меню була натиснута
-      log.info("Update 2 : {}, {}, \"{}\", {}", userName, chatId, message, menuButtonPres);
-      createMenu(flagUserChat, flagHasText, chatId, message); // створення меню
-      log.info("Update 3 : {}, {}, \"{}\", {}", userName, chatId, message, menuButtonPres);
-      menuPressButtonReaction(chatId, userName, flagUserChat, flagHasText,
-          message); // логіка, в залежності від того яка кнопка меню була натиснута
+      menuButtonPres = checkWhichButtonFirstIsPress(chatId, message, flagUserChat);
+      createMenu(flagUserChat, flagHasText, chatId, message);
+      menuPressButtonReaction(chatId, flagUserChat, flagHasText, message);
       log.info("Update 4 : {}, {}, \"{}\", {}", userName, chatId, message, menuButtonPres);
     }
   }
 
+  /**
+   * Метод створює меню на початку роботи бота
+   *
+   * @param flagUserChat - підтвердження чату з ботом
+   * @param flagHasText - чи є текстове сповіщення в чаті
+   * @param chatId - id чату
+   * @param message - текстове повідомлення
+   */
   private void createMenu(boolean flagUserChat, boolean flagHasText, Long chatId, String message) {
     if (flagUserChat && flagHasText && menuButtonPres == null) {
       sendMenu(chatId);
@@ -78,14 +81,12 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   /**
    * Метод аналізує яка кнопка із меню була натиснута і виконує відповідну логіку
    *
-   * @param chatId
-   * @param userName
-   * @param flagUserChat
-   * @param flagHasText
-   * @param message
+   * @param chatId - id чату
+   * @param flagUserChat - підтвердження чату з бото
+   * @param flagHasText - чи є текстове сповіщення в чаті
+   * @param message - текстове повідомлення
    */
-  private void menuPressButtonReaction(Long chatId, String userName, boolean flagUserChat,
-      boolean flagHasText,
+  private void menuPressButtonReaction(Long chatId, boolean flagUserChat, boolean flagHasText,
       String message) {
     if (flagUserChat && flagHasText && menuButtonPres != null) {
       if (menuButtonPres.equals(BUTTON_1) && !message.equals(BUTTON_1)) {
@@ -104,7 +105,13 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     }
   }
 
-  private void replyButtonReaction(Long groupId, Long chatId) {
+  /**
+   * Метод створює рекції при натисканні кнопок підтвердження
+   * @param groupId - id групи
+   * @param chatId - id чату
+   * @param messageId - id повідомлення
+   */
+  private void replyButtonReaction(Long groupId, Long chatId, Integer messageId) {
     if (menuButtonPres != null) {
       if (menuButtonPres.equals(BUTTON_1) && replyButtonPress.equals(BUTTON_4)) {
         sendMessage(createMessage(groupId, compositeMessage));
@@ -128,16 +135,20 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendMessage(createMessage(chatId, NEGATIVE_MESSAGE));
       }
       menuButtonPres = null;
-//      replyButtonPress = null;
-//      sendMenu(chatId);
+      replyButtonPress = null;
+      try {
+        execute(InlineKeyboardBuilder.removeKeyboard(chatId, messageId));
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   /**
    * Метод перевіряє яка кнопка із меню натиснута і надсилає повідомлення для продовження діалогу
    *
-   * @param flagUserChat
-   * @return
+   * @param flagUserChat - підтвердження чату з бото
+   * @return - текстовий опис натиснутої кнопки
    */
   private String checkWhichButtonFirstIsPress(Long chatId, String messageText,
       boolean flagUserChat) {
@@ -158,8 +169,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   /**
    * Мтеод створює додаткову клавіатуру
    *
-   * @param chatId
-   * @param text
+   * @param chatId - id чата
+   * @param text   - текст повідомлення
    */
   private void sendReplyButtons(Long chatId, String text) {
     SendMessage message = SendMessage.builder().chatId(chatId).text(text).build();
@@ -200,7 +211,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   /**
    * Метод створює і надсилає у відповідний чат повідомлення
    *
-   * @param message
+   * @param message - сформований меседж
    */
   private void sendMessage(SendMessage message) {
     try {
@@ -209,19 +220,4 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       e.printStackTrace();
     }
   }
-
-//  private ReplyKeyboardMarkup createConfirmationKeyboard() {
-//    ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-//    keyboardMarkup.setResizeKeyboard(true);
-//
-//    KeyboardRow row = new KeyboardRow();
-//    row.add(BUTTON_4);
-//    row.add(BUTTON_5);
-//
-//    List<KeyboardRow> keyboard = new ArrayList<>();
-//    keyboard.add(row);
-//
-//    keyboardMarkup.setKeyboard(keyboard);
-//    return keyboardMarkup;
-//  }
 }
