@@ -28,30 +28,30 @@ public class DiscordNotifier {
       connection.setRequestProperty("Content-Type", "application/json");
       connection.setRequestProperty("User-Agent", "Java Discord Bot");
 
-      // Правильне форматування JSON, щоб уникнути помилок
+      // Proper JSON formatting to avoid errors
       String safeMessage = message.replace("\"", "\\\"");
       String jsonPayload = String.format("{\"content\": \"%s\"}", safeMessage);
       byte[] payloadBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
 
-      // Відправка даних
+      // Sending data
       try (OutputStream os = connection.getOutputStream()) {
         os.write(payloadBytes);
         os.flush();
       }
 
-      // Перевірка відповіді
+      // Answer check
       int responseCode = connection.getResponseCode();
       log.info("Discord response code: {}", responseCode);
 
       if (responseCode == 204) {
-        log.info("Повідомлення успішно надіслано в Discord!");
+        log.info("Message successfully sent to Discord!");
       } else {
-        log.error("Помилка при надсиланні: {}. Повідомлення: {}", responseCode, jsonPayload);
+        log.error("Error sending: {}. Message: {}", responseCode, jsonPayload);
       }
 
       connection.disconnect();
     } catch (Exception e) {
-      log.error("Виникла помилка при відправленні повідомлення в Discord: ", e);
+      log.error("An error occurred while sending a message to Discord: ", e);
     }
   }
 }
