@@ -6,6 +6,8 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import pkpm.telegrambot.models.Buttons;
@@ -15,11 +17,10 @@ import pkpm.telegrambot.models.ChatMessage;
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   private final Map<Long, String> input = new HashMap<>();
-  private String menuButtonPres = null;
-  private String replyButtonPress = null;
+  private String menuButton = null;
+  private String replyButton = null;
   private String compositeMessage = "";
-
-  private DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
+  private final DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
 
   @Override
   public String getBotUsername() {
@@ -37,36 +38,55 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    Long chatId = update.getMessage() != null ? update.getMessage().getChatId()
+    Message message = update.getMessage();
+    CallbackQuery callbackQuery = update.getCallbackQuery();
+
+    Long chatId = message != null ? message.getChatId()
         : update.getCallbackQuery().getMessage().getChatId();
 
-    if (update.hasCallbackQuery()) {
-      replyButtonPress = update.getCallbackQuery().getData();
-      Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-      replyButtonReaction(getGroupId(), chatId, messageId);
-      log.info("Status (reply button) : {}, {}, {}, {}, {}", chatId, getGroupId(), menuButtonPres,
-          replyButtonPress, messageId);
-    } else if (update.getMessage().getChat().isUserChat() && update.getMessage().hasText()) {
-      String message = update.getMessage().getText();
-      boolean flagUserChat = update.getMessage().getChat().isUserChat();
-      boolean flagHasText = update.getMessage().hasText();
-      menuButtonPres = checkWhichButtonFirstIsPress(chatId, message, flagUserChat);
-      createMenu(flagUserChat, flagHasText, chatId, message);
-      menuPressButtonReaction(chatId, flagUserChat, flagHasText, message);
-      log.info("Status (menu button): {}, \"{}\", {}", chatId, message, menuButtonPres);
+    if (message != null && message.getChat().isUserChat() && message.hasText()) {
+      selectAction(message, chatId);
+    } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
+      confirmSelection(callbackQuery, chatId);
     }
   }
 
   /**
-   * Метод створює меню на початку роботи бота
+   * Виконує вибір кнопки зі стартової клавіатури
    *
-   * @param flagUserChat - підтвердження чату з ботом
-   * @param flagHasText - чи є текстове сповіщення в чаті
-   * @param chatId - id чату
+   * @param message
+   * @param chatId
+   */
+  private void selectAction(Message message, Long chatId) {
+    String messageText = message.getText();
+    this.menuButton = checkWhichButtonFirstIsPress(chatId, messageText);
+    createMenu(chatId, messageText);
+    menuButtonAction(chatId, messageText);
+    log.info("Status (menu button): {}, \"{}\", {}", chatId, messageText, menuButton);
+  }
+
+  /**
+   * Перевіряє підтвердження і виконує сценарій
+   *
+   * @param callbackQuery
+   * @param chatId
+   */
+  private void confirmSelection(CallbackQuery callbackQuery, Long chatId) {
+    replyButton = callbackQuery.getData();
+    Integer messageId = callbackQuery.getMessage().getMessageId();
+    replyButtonAction(getGroupId(), chatId, messageId);
+    log.info("Status (reply button) : {}, {}, {}, {}, {}", chatId, getGroupId(), menuButton,
+        replyButton, messageId);
+  }
+
+  /**
+   * Створює меню на початку роботи бота
+   *
+   * @param chatId  - id чату
    * @param message - текстове повідомлення
    */
-  private void createMenu(boolean flagUserChat, boolean flagHasText, Long chatId, String message) {
-    if (flagUserChat && flagHasText && menuButtonPres == null) {
+  private void createMenu(Long chatId, String message) {
+    if (menuButton == null) {
       sendMenu(chatId);
       input.put(chatId, message);
     }
@@ -75,88 +95,90 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   /**
    * Метод аналізує яка кнопка із меню була натиснута і виконує відповідну логіку
    *
-   * @param chatId - id чату
-   * @param flagUserChat - підтвердження чату з бото
-   * @param flagHasText - чи є текстове сповіщення в чаті
+   * @param chatId  - id чату
    * @param message - текстове повідомлення
    */
-  private void menuPressButtonReaction(Long chatId, boolean flagUserChat, boolean flagHasText,
-      String message) {
-    if (flagUserChat && flagHasText && menuButtonPres != null) {
-      if (menuButtonPres.equals(Buttons.BUTTON_1.getName()) && !message.equals(Buttons.BUTTON_1.getName())) {
+  private void menuButtonAction(Long chatId, String message) {
+    if (menuButton != null) {
+      if (menuButton.equals(Buttons.BUTTON_1.getName()) && !message.equals(
+          Buttons.BUTTON_1.getName())) {
         sendMessage(createMessage(chatId, ChatMessage.INFORM_PRE_SENT.getMessage()));
         compositeMessage = ChatMessage.INFORM_ADD_FOLDER.getMessage() + message + "\"";
         sendReplyButtons(chatId, compositeMessage);
       }
-      if (menuButtonPres.equals(Buttons.BUTTON_2.getName()) && !message.equals(Buttons.BUTTON_2.getName())) {
+      if (menuButton.equals(Buttons.BUTTON_2.getName()) && !message.equals(
+          Buttons.BUTTON_2.getName())) {
         sendMessage(createMessage(chatId, ChatMessage.INFORM_PRE_SENT.getMessage()));
         compositeMessage = ChatMessage.INFORM_ADD_POSITION.getMessage() + message + "\"";
         sendReplyButtons(chatId, compositeMessage);
       }
-      if (menuButtonPres.equals(Buttons.BUTTON_3.getName())) {
+      if (menuButton.equals(Buttons.BUTTON_3.getName())) {
         sendReplyButtons(chatId, ChatMessage.INFORM_CHANGE_1.getMessage());
       }
     }
   }
 
   /**
-   * Метод створює рекції при натисканні кнопок підтвердження
+   * Метод створює реакції при натисканні кнопок підтвердження
    *
-   * @param groupId - id групи
-   * @param chatId - id чату
+   * @param groupId   - id групи
+   * @param chatId    - id чату
    * @param messageId - id повідомлення
    */
-  private void replyButtonReaction(Long groupId, Long chatId, Integer messageId) {
-    if (menuButtonPres != null) {
-      if (menuButtonPres.equals(Buttons.BUTTON_1.getName()) && replyButtonPress.equals(Buttons.BUTTON_4.getName())) {
-        sendMessage(createMessage(groupId, compositeMessage));
-        notifier.sendMessage(compositeMessage);
-        sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-      } else if (menuButtonPres.equals(Buttons.BUTTON_1.getName()) && replyButtonPress.equals(Buttons.BUTTON_5.getName())) {
-        sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
-      }
-      if (menuButtonPres.equals(Buttons.BUTTON_2.getName()) && replyButtonPress.equals(Buttons.BUTTON_4.getName())) {
-        sendMessage(createMessage(groupId, compositeMessage));
-        notifier.sendMessage(compositeMessage);
-        sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-      } else if (menuButtonPres.equals(Buttons.BUTTON_2.getName()) && replyButtonPress.equals(Buttons.BUTTON_5.getName())) {
-        sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
-      }
-      if (menuButtonPres.equals(Buttons.BUTTON_3.getName()) && replyButtonPress.equals(Buttons.BUTTON_4.getName())) {
-        sendMessage(createMessage(groupId, ChatMessage.INFORM_CHANGE_2.getMessage()));
-        notifier.sendMessage(ChatMessage.INFORM_CHANGE_2.getMessage());
-        sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-      } else if (menuButtonPres.equals(Buttons.BUTTON_3.getName()) && replyButtonPress.equals(Buttons.BUTTON_5.getName())) {
-        sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
-      }
-      menuButtonPres = null;
-      replyButtonPress = null;
-      try {
-        execute(InlineKeyboardBuilder.removeKeyboard(chatId, messageId));
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+  private void replyButtonAction(Long groupId, Long chatId, Integer messageId) {
+    if (menuButton.equals(Buttons.BUTTON_1.getName()) && replyButton.equals(
+        Buttons.BUTTON_4.getName())) {
+      sendMessage(createMessage(groupId, compositeMessage));
+      notifier.sendMessage(compositeMessage);
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
+    } else if (menuButton.equals(Buttons.BUTTON_1.getName()) && replyButton.equals(
+        Buttons.BUTTON_5.getName())) {
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
+    }
+    if (menuButton.equals(Buttons.BUTTON_2.getName()) && replyButton.equals(
+        Buttons.BUTTON_4.getName())) {
+      sendMessage(createMessage(groupId, compositeMessage));
+      notifier.sendMessage(compositeMessage);
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
+    } else if (menuButton.equals(Buttons.BUTTON_2.getName()) && replyButton.equals(
+        Buttons.BUTTON_5.getName())) {
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
+    }
+    if (menuButton.equals(Buttons.BUTTON_3.getName()) && replyButton.equals(
+        Buttons.BUTTON_4.getName())) {
+      sendMessage(createMessage(groupId, ChatMessage.INFORM_CHANGE_2.getMessage()));
+      notifier.sendMessage(ChatMessage.INFORM_CHANGE_2.getMessage());
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
+    } else if (menuButton.equals(Buttons.BUTTON_3.getName()) && replyButton.equals(
+        Buttons.BUTTON_5.getName())) {
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
+    }
+    menuButton = null;
+    replyButton = null;
+    try {
+      execute(InlineKeyboardBuilder.removeKeyboard(chatId, messageId));
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
   /**
    * Метод перевіряє яка кнопка із меню натиснута і надсилає повідомлення для продовження діалогу
    *
-   * @param flagUserChat - підтвердження чату з бото
    * @return - текстовий опис натиснутої кнопки
    */
-  private String checkWhichButtonFirstIsPress(Long chatId, String messageText,
-      boolean flagUserChat) {
-    if (flagUserChat && Buttons.BUTTON_1.getName().equals(messageText)) {
+  private String checkWhichButtonFirstIsPress(Long chatId,
+      String messageText) {
+    if (Buttons.BUTTON_1.getName().equals(messageText)) {
       sendMessage(createMessage(chatId, ChatMessage.INPUT_FOLDER.getMessage()));
       return messageText;
-    } else if (flagUserChat && Buttons.BUTTON_2.getName().equals(messageText)) {
+    } else if (Buttons.BUTTON_2.getName().equals(messageText)) {
       sendMessage(createMessage(chatId, ChatMessage.INPUT_POSITION.getMessage()));
       return messageText;
-    } else if (flagUserChat && Buttons.BUTTON_3.getName().equals(messageText)) {
+    } else if (Buttons.BUTTON_3.getName().equals(messageText)) {
       return messageText;
-    } else if (menuButtonPres != null) {
-      return menuButtonPres;
+    } else if (menuButton != null) {
+      return menuButton;
     }
     return null;
   }
@@ -169,7 +191,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    */
   private void sendReplyButtons(Long chatId, String text) {
     SendMessage message = SendMessage.builder().chatId(chatId).text(text).build();
-    message.setReplyMarkup(InlineKeyboardBuilder.createSingleRowKeyboard(Buttons.BUTTON_4.getName(), Buttons.BUTTON_5.getName()));
+    message.setReplyMarkup(InlineKeyboardBuilder.createSingleRowKeyboard(Buttons.BUTTON_4.getName(),
+        Buttons.BUTTON_5.getName()));
     sendMessage(message);
   }
 
@@ -179,7 +202,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @param chatId - id відповідного чату
    */
   private void sendMenu(Long chatId) {
-    SendMessage message = SendMessage.builder().chatId(chatId).text(ChatMessage.START.getMessage()).build();
+    SendMessage message = SendMessage.builder().chatId(chatId).text(ChatMessage.START.getMessage())
+        .build();
     String[] firstRow = {Buttons.BUTTON_1.getName(), Buttons.BUTTON_2.getName()};
     String[] secondRow = {Buttons.BUTTON_3.getName()};
 
