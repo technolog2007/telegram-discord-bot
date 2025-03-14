@@ -126,33 +126,40 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @param messageId - id повідомлення
    */
   private void replyButtonAction(Long groupId, Long chatId, Integer messageId) {
-    if (menuButton.equals(Buttons.BUTTON_1.getName()) && replyButton.equals(
-        Buttons.BUTTON_4.getName())) {
+    boolean isConfirm = Buttons.BUTTON_4.getName().equals(replyButton);
+    boolean isReject = Buttons.BUTTON_5.getName().equals(replyButton);
+
+    if (menuButton.equals(Buttons.BUTTON_1.getName()) && isConfirm) {
       sendMessage(createMessage(groupId, compositeMessage));
       notifier.sendMessage(compositeMessage);
       sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-    } else if (menuButton.equals(Buttons.BUTTON_1.getName()) && replyButton.equals(
-        Buttons.BUTTON_5.getName())) {
+    } else if (menuButton.equals(Buttons.BUTTON_1.getName()) && isReject) {
       sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
     }
-    if (menuButton.equals(Buttons.BUTTON_2.getName()) && replyButton.equals(
-        Buttons.BUTTON_4.getName())) {
+    if (menuButton.equals(Buttons.BUTTON_2.getName()) && isConfirm) {
       sendMessage(createMessage(groupId, compositeMessage));
       notifier.sendMessage(compositeMessage);
       sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-    } else if (menuButton.equals(Buttons.BUTTON_2.getName()) && replyButton.equals(
-        Buttons.BUTTON_5.getName())) {
+    } else if (menuButton.equals(Buttons.BUTTON_2.getName()) && isReject) {
       sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
     }
-    if (menuButton.equals(Buttons.BUTTON_3.getName()) && replyButton.equals(
-        Buttons.BUTTON_4.getName())) {
+    if (menuButton.equals(Buttons.BUTTON_3.getName()) && isConfirm) {
       sendMessage(createMessage(groupId, ChatMessage.INFORM_CHANGE_2.getMessage()));
       notifier.sendMessage(ChatMessage.INFORM_CHANGE_2.getMessage());
       sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-    } else if (menuButton.equals(Buttons.BUTTON_3.getName()) && replyButton.equals(
-        Buttons.BUTTON_5.getName())) {
+    } else if (menuButton.equals(Buttons.BUTTON_3.getName()) && isReject) {
       sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
     }
+    clearState(chatId, messageId);
+  }
+
+  /**
+   * Очищує стан кнопок меню і підтвердження
+   *
+   * @param chatId
+   * @param messageId
+   */
+  private void clearState(Long chatId, Integer messageId) {
     menuButton = null;
     replyButton = null;
     try {
