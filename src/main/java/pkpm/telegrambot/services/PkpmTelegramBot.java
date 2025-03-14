@@ -129,28 +129,33 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     boolean isConfirm = Buttons.BUTTON_4.getName().equals(replyButton);
     boolean isReject = Buttons.BUTTON_5.getName().equals(replyButton);
 
-    if (menuButton.equals(Buttons.BUTTON_1.getName()) && isConfirm) {
-      sendMessage(createMessage(groupId, compositeMessage));
-      notifier.sendMessage(compositeMessage);
-      sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-    } else if (menuButton.equals(Buttons.BUTTON_1.getName()) && isReject) {
-      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
-    }
-    if (menuButton.equals(Buttons.BUTTON_2.getName()) && isConfirm) {
-      sendMessage(createMessage(groupId, compositeMessage));
-      notifier.sendMessage(compositeMessage);
-      sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-    } else if (menuButton.equals(Buttons.BUTTON_2.getName()) && isReject) {
-      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
-    }
-    if (menuButton.equals(Buttons.BUTTON_3.getName()) && isConfirm) {
-      sendMessage(createMessage(groupId, ChatMessage.INFORM_CHANGE_2.getMessage()));
-      notifier.sendMessage(ChatMessage.INFORM_CHANGE_2.getMessage());
-      sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
-    } else if (menuButton.equals(Buttons.BUTTON_3.getName()) && isReject) {
-      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
+    if (isConfirm || isReject) {
+      if (menuButton.equals(Buttons.BUTTON_1.getName())) {
+        handleButton(isConfirm, groupId, chatId, compositeMessage);
+      }
+      if (menuButton.equals(Buttons.BUTTON_2.getName())) {
+        handleButton(isConfirm, groupId, chatId, compositeMessage);
+      }
+      if (menuButton.equals(Buttons.BUTTON_3.getName())) {
+        handleButton(isConfirm, groupId, chatId, ChatMessage.INFORM_CHANGE_2.getMessage());
+      }
     }
     clearState(chatId, messageId);
+  }
+
+  public void handleButton(boolean isConfirm, Long groupId, Long chatId,
+      String sandMessageIfConfirm) {
+    if (isConfirm) {
+      sendAndNotify(groupId, chatId, sandMessageIfConfirm);
+    } else {
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_REJECT.getMessage()));
+    }
+  }
+
+  private void sendAndNotify(Long groupId, Long chatId, String message) {
+    sendMessage(createMessage(groupId, message));
+    notifier.sendMessage(message);
+    sendMessage(createMessage(chatId, ChatMessage.INFORM_CONFIRM.getMessage()));
   }
 
   /**
