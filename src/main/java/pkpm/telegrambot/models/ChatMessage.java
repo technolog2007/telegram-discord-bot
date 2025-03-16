@@ -10,7 +10,9 @@ public enum ChatMessage {
   INFORM_CHANGE_1("Ви впевнені, що хочете внести зміни?"),
   INFORM_CHANGE_2("Додані нові позиції на вкладку \"Зміни\""),
   INPUT_FOLDER("Введіть позначення вкладки:"),
-  INPUT_POSITION("Введіть позначення вкладки на яку додані позиції:");
+  INPUT_POSITION("Введіть позначення вкладки на яку додані позиції:"),
+  INFORM_NOT_IDENTIFY_USER("Введіть позначення вкладки на яку додані позиції:"),
+  DISCORD_RESPONSE_COD_204 ("Message successfully sent to Discord!");
 
   private final String message;
 

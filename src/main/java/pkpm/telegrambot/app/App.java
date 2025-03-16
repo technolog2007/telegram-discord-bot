@@ -6,14 +6,17 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import pkpm.telegrambot.services.DiscordListener;
 import pkpm.telegrambot.services.PkpmTelegramBot;
 
 public class App {
 
   private static final Logger log = LoggerFactory.getLogger(App.class);
 
-  public static void main(String[] args) throws TelegramApiException {
+  public static void main(String[] args) throws Exception {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
+    DiscordListener client = new DiscordListener(System.getenv("bot_token_discord"));
+    client.connect();
     try {
       log.info("Registering bot...");
       telegramBotsApi.registerBot(new PkpmTelegramBot());

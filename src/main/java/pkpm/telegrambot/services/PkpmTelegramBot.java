@@ -3,6 +3,7 @@ package pkpm.telegrambot.services;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,7 +21,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private String menuButton = null;
   private String replyButton = null;
   private String compositeMessage = "";
-  private final DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
+  @Getter
+  public final DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
 
   @Override
   public String getBotUsername() {
@@ -29,11 +31,15 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   @Override
   public String getBotToken() {
-    return System.getenv("token");
+    return System.getenv("bot_token_telegram");
   }
 
   private Long getGroupId() {
     return Long.parseLong(System.getenv("group_test_id"));
+  }
+
+  private String getUserId() {
+    return System.getenv("user_id_telegram_1");
   }
 
   @Override
@@ -43,12 +49,19 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
     Long chatId = message != null ? message.getChatId()
         : update.getCallbackQuery().getMessage().getChatId();
-
-    if (message != null && message.getChat().isUserChat() && message.hasText()) {
-      selectAction(message, chatId);
-    } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
-      confirmSelection(callbackQuery, chatId);
+    if (verifyUserId(chatId)) {
+      if (message != null && message.getChat().isUserChat() && message.hasText()) {
+        selectAction(message, chatId);
+      } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
+        confirmSelection(callbackQuery, chatId);
+      }
+    } else {
+      createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
     }
+  }
+
+  private boolean verifyUserId(Long chatId) {
+    return chatId.toString().equals(getUserId());
   }
 
   /**
