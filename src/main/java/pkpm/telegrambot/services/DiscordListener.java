@@ -14,7 +14,6 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class DiscordListener extends WebSocketClient {
@@ -24,6 +23,8 @@ public class DiscordListener extends WebSocketClient {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private Session session;
+  private static final int MAX_RECONNECT_ATTEMPTS = 5;
+  private int reconnectAttempts = 0;
 
   public DiscordListener() throws Exception {
     super(new URI(DISCORD_GATEWAY));
@@ -55,7 +56,12 @@ public class DiscordListener extends WebSocketClient {
         JsonNode data = jsonNode.get("d");
         String content = data.get("content").asText();
         String author = data.get("author").get("username").asText();
+//        log.info("Raw Discord Message JSON: {}", data.toPrettyString());
         log.info("New message from {}: {}", author, content);
+//        if (data.has("type")) {
+//          int messageType = data.get("type").asInt();
+//          log.info("📝 Message type: {}", messageType);
+//        }
       } else if ("11".equals(opCode)) {
         log.info("Received Heartbeat ACK");
       }
@@ -83,45 +89,52 @@ public class DiscordListener extends WebSocketClient {
   }
 
   public void reconnect() {
-    log.warn("Reconnecting to Discord...");
-    disconnect(); // Закриваємо поточне з'єднання
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      log.error("Max reconnect attempts reached. Stopping reconnection.");
+      return;
+    }
+
+    reconnectAttempts++;
+    log.warn("Reconnecting to Discord... Attempt {}/{}", reconnectAttempts, MAX_RECONNECT_ATTEMPTS);
+
+    disconnect();
     try {
-      Thread.sleep(5000); // Затримка перед новим підключенням (5 сек)
+      Thread.sleep(5000 * reconnectAttempts);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       log.error("Reconnect sleep interrupted", e);
+      return;
     }
-    connect(); // Встановлюємо нове з'єднання
+
+    connect();
   }
 
   public void connect() {
     try {
-      URI discordGateway = new URI(System.getenv("discord_gateway"));
-      WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-      session = container.connectToServer(this, discordGateway);
-
-      log.info("Connected to Discord Gateway!");
+      super.connect(); // Викликаємо оригінальний метод WebSocketClient
+      log.info("Connecting to Discord Gateway...");
     } catch (Exception e) {
       log.error("Failed to connect to Discord Gateway", e);
-      scheduleReconnect(); // Якщо підключення не вдалося, пробуємо ще раз
+      scheduleReconnect();
     }
   }
 
   private void disconnect() {
-    if (session != null && session.isOpen()) {
-      try {
-        session.close();
+    try {
+      if (this.isOpen()) {
+        this.closeBlocking();
         log.info("Disconnected from Discord Gateway");
-      } catch (IOException e) {
-        log.error("Error closing WebSocket connection", e);
       }
+    } catch (InterruptedException e) {
+      log.error("Error closing WebSocket connection", e);
+      Thread.currentThread().interrupt();
     }
   }
 
   private void scheduleReconnect() {
     new Thread(() -> {
       try {
-        Thread.sleep(10000); // Чекаємо 10 секунд перед повторним підключенням
+        Thread.sleep(10000);
         reconnect();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -129,10 +142,5 @@ public class DiscordListener extends WebSocketClient {
       }
     }).start();
   }
-
-//  public static void main(String[] args) throws Exception {
-//    DiscordListener client = new DiscordListener();
-//    client.connectBlocking();
-//  }
 }
 

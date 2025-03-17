@@ -31,11 +31,7 @@ public class DiscordNotifier {
 
   public void sendMessage(String message) {
     try {
-      // Створюємо URL-об'єкт
-      log.info("webhookURL is : {}", webhookUrl);
-      log.info("botToken is : {}", botToken);
-      log.info("channelId is : {}", channelId);
-      URL url = new URL(webhookUrl);
+      URL url = new URL(webhookUrl); // Створюємо URL-об'єкт
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
       connection.setRequestMethod("POST");
       connection.setDoOutput(true);
@@ -45,13 +41,11 @@ public class DiscordNotifier {
       String safeMessage = message.replace("\"", "\\\"");
       String jsonPayload = String.format("{\"content\": \"%s\"}", safeMessage);
       byte[] payloadBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
-
       // Sending data
       try (OutputStream os = connection.getOutputStream()) {
         os.write(payloadBytes);
         os.flush();
       }
-
       // Answer check
       int responseCode = connection.getResponseCode();
       log.info("Discord response code: {}", responseCode);
