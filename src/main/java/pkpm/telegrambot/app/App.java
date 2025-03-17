@@ -14,9 +14,12 @@ public class App {
   private static final Logger log = LoggerFactory.getLogger(App.class);
 
   public static void main(String[] args) throws Exception {
+    startTelegramBot();
+    startDiscordListener();
+  }
+
+  private static void startTelegramBot() throws TelegramApiException {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-    DiscordListener client = new DiscordListener(System.getenv("bot_token_discord"));
-    client.connect();
     try {
       log.info("Registering bot...");
       telegramBotsApi.registerBot(new PkpmTelegramBot());
@@ -26,5 +29,10 @@ public class App {
           e);
     }
     log.info("Telegram bot is ready to accept updates from user......");
+  }
+
+  private static void startDiscordListener() throws Exception {
+    DiscordListener client = new DiscordListener();
+    client.connectBlocking();
   }
 }
