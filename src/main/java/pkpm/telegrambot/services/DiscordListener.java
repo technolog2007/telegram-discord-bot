@@ -2,13 +2,9 @@ package pkpm.telegrambot.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -21,8 +17,6 @@ public class DiscordListener extends WebSocketClient {
   private static final String DISCORD_GATEWAY = System.getenv("discord_gateway");
   private final String botToken = System.getenv("bot_token_discord");
   private final ObjectMapper objectMapper = new ObjectMapper();
-
-  private Session session;
   private static final int MAX_RECONNECT_ATTEMPTS = 5;
   private int reconnectAttempts = 0;
 
@@ -56,12 +50,7 @@ public class DiscordListener extends WebSocketClient {
         JsonNode data = jsonNode.get("d");
         String content = data.get("content").asText();
         String author = data.get("author").get("username").asText();
-//        log.info("Raw Discord Message JSON: {}", data.toPrettyString());
         log.info("New message from {}: {}", author, content);
-//        if (data.has("type")) {
-//          int messageType = data.get("type").asInt();
-//          log.info("📝 Message type: {}", messageType);
-//        }
       } else if ("11".equals(opCode)) {
         log.info("Received Heartbeat ACK");
       }
@@ -71,11 +60,12 @@ public class DiscordListener extends WebSocketClient {
   }
 
   private void sendIdentify() {
+    int intents = (1 << 0) | (1 << 1) | (1 << 9) | (1 << 15);
     String payload = String.format(
-        "{\"op\": 2, \"d\": { \"token\": \"%s\", \"intents\": 513, \"properties\": {\"$os\": \"linux\", \"$browser\": \"java\", \"$device\": \"java\"}}}",
-        botToken);
+        "{\"op\": 2, \"d\": { \"token\": \"%s\", \"intents\": %d, \"properties\": {\"$os\": \"linux\", \"$browser\": \"java\", \"$device\": \"java\"}}}",
+        botToken, intents);
     send(payload);
-    log.info("Sent IDENTIFY packet");
+    log.info("Sent IDENTIFY packet with intents: {}", intents);
   }
 
   @Override
