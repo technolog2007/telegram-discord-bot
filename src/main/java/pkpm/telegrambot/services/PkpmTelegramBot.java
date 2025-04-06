@@ -1,5 +1,6 @@
 package pkpm.telegrambot.services;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
+import pkpm.telegrambot.utils.MessageReader;
 
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
@@ -44,19 +46,23 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    Message message = update.getMessage();
-    CallbackQuery callbackQuery = update.getCallbackQuery();
+    if(update.hasCallbackQuery() || update.hasMessage()) {
+      Message message = update.getMessage();
+      CallbackQuery callbackQuery = update.getCallbackQuery();
 
-    Long chatId = message != null ? message.getChatId()
-        : update.getCallbackQuery().getMessage().getChatId();
-    if (verifyUserId(chatId)) {
-      if (message != null && message.getChat().isUserChat() && message.hasText()) {
-        selectAction(message, chatId);
-      } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
-        confirmSelection(callbackQuery, chatId);
+      Long chatId = message != null ? message.getChatId()
+          : update.getCallbackQuery().getMessage().getChatId();
+      if (verifyUserId(chatId)) {
+        if (message != null && message.getChat().isUserChat() && message.hasText()) {
+          selectAction(message, chatId);
+        } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
+          confirmSelection(callbackQuery, chatId);
+        } else {
+          createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
+        }
       }
-    } else {
-      createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
+    }else{
+
     }
   }
 
@@ -261,6 +267,13 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       execute(message);
     } catch (Exception e) {
       e.printStackTrace();
+    }
+  }
+
+  private void sendMessageFromFile(Long chatId) {
+    List<String> messageList = MessageReader.read(System.getenv("output.txt"));
+    for (String message : messageList) {
+      sendMessage(createMessage(chatId, message));
     }
   }
 }
