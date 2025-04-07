@@ -1,4 +1,4 @@
-package pkpm.telegrambot.services;
+package pkpm.telegrambot.services.discord;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,8 +19,8 @@ public class DiscordNotifier {
   private final String webhookUrl;
   private final int expectedCode = 204;
 
-  private final String botToken = System.getenv("bot_token_discord");
-  private final String channelId = System.getenv("chanel_id_discord");
+  private final String botToken = System.getenv("BOT_TOKEN_DISCORD");
+  private final String channelId = System.getenv("CHANEL_ID_DISCORD");
 
   public DiscordNotifier(String webhookUrl) {
     if (webhookUrl == null || webhookUrl.isBlank()) {

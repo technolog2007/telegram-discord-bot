@@ -1,7 +1,6 @@
 package pkpm.telegrambot.utils;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ public class MessageReader {
   public static List<String> read(String fileName) {
     List<String> messageList = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+      log.info("Start read file {}", fileName);
       String line;
       while ((line = reader.readLine()) != null) {
         messageList.add(line);
@@ -24,5 +24,4 @@ public class MessageReader {
     }
     return messageList;
   }
-
 }

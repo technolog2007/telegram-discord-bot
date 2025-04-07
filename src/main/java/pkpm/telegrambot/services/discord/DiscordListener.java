@@ -1,4 +1,4 @@
-package pkpm.telegrambot.services;
+package pkpm.telegrambot.services.discord;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,8 +14,8 @@ import java.net.URI;
 @Slf4j
 public class DiscordListener extends WebSocketClient {
 
-  private static final String DISCORD_GATEWAY = System.getenv("discord_gateway");
-  private final String botToken = System.getenv("bot_token_discord");
+  private static final String DISCORD_GATEWAY = System.getenv("DISCORD_GATEWAY");
+  private static final String BOT_TOKEN_DISCORD = System.getenv("BOT_TOKEN_DISCORD");
   private final ObjectMapper objectMapper = new ObjectMapper();
   private static final int MAX_RECONNECT_ATTEMPTS = 5;
   private int reconnectAttempts = 0;
@@ -43,7 +43,7 @@ public class DiscordListener extends WebSocketClient {
       if ("10".equals(opCode)) {  // Hello packet, start heartbeat
         int heartbeatInterval = jsonNode.get("d").get("heartbeat_interval").asInt();
         sendIdentify();
-        log.info("Received Hello. Heartbeat interval: {}", heartbeatInterval);
+        log.info("Heartbeat interval: {}", heartbeatInterval);
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this::sendHeartbeat, 0, 41250, TimeUnit.MILLISECONDS);
       } else if ("0".equals(opCode) && "MESSAGE_CREATE".equals(jsonNode.get("t").asText())) {
@@ -63,7 +63,7 @@ public class DiscordListener extends WebSocketClient {
     int intents = (1 << 0) | (1 << 1) | (1 << 9) | (1 << 15);
     String payload = String.format(
         "{\"op\": 2, \"d\": { \"token\": \"%s\", \"intents\": %d, \"properties\": {\"$os\": \"linux\", \"$browser\": \"java\", \"$device\": \"java\"}}}",
-        botToken, intents);
+        BOT_TOKEN_DISCORD, intents);
     send(payload);
     log.info("Sent IDENTIFY packet with intents: {}", intents);
   }

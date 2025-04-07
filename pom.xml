@@ -81,7 +81,7 @@
               <archive>
                 <manifest>
                   <addClasspath>true</addClasspath>
-                  <mainClass>pkpm.telegrambot.app.App</mainClass>
+                  <mainClass>pkpm.telegrambot.App</mainClass>
                   <classpathPrefix>lib/</classpathPrefix>
                 </manifest>
                 <manifestEntries>
@@ -116,7 +116,7 @@
               </formats>
               <archive>
                 <manifest>
-                  <mainClass>pkpm.telegrambot.app.App</mainClass>
+                  <mainClass>pkpm.telegrambot.App</mainClass>
                   <addClasspath>true</addClasspath>
                 </manifest>
               </archive>

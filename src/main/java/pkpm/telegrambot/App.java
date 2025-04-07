@@ -1,4 +1,4 @@
-package pkpm.telegrambot.app;
+package pkpm.telegrambot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,17 +6,26 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import pkpm.telegrambot.services.DiscordListener;
-import pkpm.telegrambot.services.PkpmTelegramBot;
-
+import pkpm.telegrambot.services.discord.DiscordListener;
+import pkpm.telegrambot.services.telegram.PkpmTelegramBot;
+import pkpm.telegrambot.utils.FileScanner;
 public class App {
 
   private static final Logger log = LoggerFactory.getLogger(App.class);
+  private static final String FILE_NAME = System.getenv("FILE_NAME");
+  private static final String GROUP_TEST_ID = System.getenv("GROUP_TEST_ID");
 
   public static void main(String[] args) throws Exception {
     startTelegramBot();
     startDiscordListener();
+    FileScanner scanner = new FileScanner(FILE_NAME);
+    while (true) {
+      scanner.scanner();
+      PkpmTelegramBot.getInstance().sendMessageAndClearFile(toLongFromString(GROUP_TEST_ID), FILE_NAME);
+    }
   }
+
+
 
   private static void startTelegramBot() throws TelegramApiException {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
@@ -34,5 +43,9 @@ public class App {
   private static void startDiscordListener() throws Exception {
     DiscordListener client = new DiscordListener();
     client.connectBlocking();
+  }
+
+  private static Long toLongFromString(String line){
+    return Long.getLong(line);
   }
 }

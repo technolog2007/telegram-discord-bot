@@ -1,6 +1,5 @@
-package pkpm.telegrambot.services;
+package pkpm.telegrambot.services.telegram;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,55 +13,61 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
+import pkpm.telegrambot.services.discord.DiscordNotifier;
 import pkpm.telegrambot.utils.MessageReader;
 
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
+  private static PkpmTelegramBot instance;
   private final Map<Long, String> input = new HashMap<>();
   private String menuButton = null;
   private String replyButton = null;
   private String compositeMessage = "";
   @Getter
-  public final DiscordNotifier notifier = new DiscordNotifier(System.getenv("web_hook_discord"));
+  public final DiscordNotifier notifier = new DiscordNotifier(System.getenv("WEB_HOOK_DISCORD"));
 
   @Override
   public String getBotUsername() {
-    return System.getenv("bot_user_name");
+    return System.getenv("BOT_USER_NAME");
   }
 
   @Override
   public String getBotToken() {
-    return System.getenv("bot_token_telegram");
+    return System.getenv("BOT_TOKEN_TELEGRAM");
   }
 
   private Long getGroupId() {
-    return Long.parseLong(System.getenv("group_test_id"));
+    return Long.parseLong(System.getenv("GROUP_TEST_ID"));
   }
 
   private String getUserId() {
-    return System.getenv("user_id_telegram_1");
+    return System.getenv("USER_ID_TELEGRAM_1");
+  }
+
+  public static PkpmTelegramBot getInstance() {
+    return instance;
+  }
+
+  public PkpmTelegramBot() {
+    instance = this;
   }
 
   @Override
   public void onUpdateReceived(Update update) {
-    if(update.hasCallbackQuery() || update.hasMessage()) {
-      Message message = update.getMessage();
-      CallbackQuery callbackQuery = update.getCallbackQuery();
+    Message message = update.getMessage();
+    CallbackQuery callbackQuery = update.getCallbackQuery();
 
-      Long chatId = message != null ? message.getChatId()
-          : update.getCallbackQuery().getMessage().getChatId();
-      if (verifyUserId(chatId)) {
-        if (message != null && message.getChat().isUserChat() && message.hasText()) {
-          selectAction(message, chatId);
-        } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
-          confirmSelection(callbackQuery, chatId);
-        } else {
-          createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
-        }
+    Long chatId = message != null ? message.getChatId()
+        : update.getCallbackQuery().getMessage().getChatId();
+    if (verifyUserId(chatId)) {
+      if (message != null && message.getChat().isUserChat() && message.hasText()) {
+        selectAction(message, chatId);
+      } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
+        confirmSelection(callbackQuery, chatId);
+      } else {
+        createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
       }
-    }else{
-
     }
   }
 
@@ -162,7 +167,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     clearState(chatId, messageId);
   }
 
-  public void handleButton(boolean isConfirm, Long groupId, Long chatId,
+  private void handleButton(boolean isConfirm, Long groupId, Long chatId,
       String sandMessageIfConfirm) {
     if (isConfirm) {
       sendAndNotify(groupId, chatId, sandMessageIfConfirm);
@@ -269,11 +274,13 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       e.printStackTrace();
     }
   }
-
-  private void sendMessageFromFile(Long chatId) {
-    List<String> messageList = MessageReader.read(System.getenv("output.txt"));
-    for (String message : messageList) {
-      sendMessage(createMessage(chatId, message));
+  public void sendMessageAndClearFile(Long chatId, String fileName) {
+    List<String> messageList = MessageReader.read(fileName);
+    if(!messageList.isEmpty()) {
+      for (String message : messageList) {
+        sendMessage(createMessage(chatId, message));
+      }
+      messageList.clear();
     }
   }
 }
