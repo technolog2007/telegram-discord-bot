@@ -274,13 +274,13 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       e.printStackTrace();
     }
   }
-  public void sendMessageAndClearFile(Long chatId, String fileName) {
+  public void sendMessageAndCleanFile(Long chatId, String fileName) {
     List<String> messageList = MessageReader.read(fileName);
     if(!messageList.isEmpty()) {
       for (String message : messageList) {
         sendMessage(createMessage(chatId, message));
       }
-      messageList.clear();
+      MessageReader.clean(fileName);
     }
   }
 }
