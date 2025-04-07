@@ -7,18 +7,22 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 
 public class ReplyKeyboardBuilder {
 
+  private ReplyKeyboardBuilder() {
+    // Add a private constructor to hide the implicit public one.
+  }
+
   private static KeyboardRow createRow(String... buttons) {
     KeyboardRow row = new KeyboardRow();
-    for (int i = 0; i < buttons.length; i++) {
-      row.add(buttons[i]);
+    for (String button : buttons) {
+      row.add(button);
     }
     return row;
   }
 
   public static ReplyKeyboardMarkup createMultiRowKeyboard(List<String[]> buttons) {
     List<KeyboardRow> keyboard = new ArrayList<>();
-    for (int i = 0; i < buttons.size(); i++) {
-      keyboard.add(createRow(buttons.get(i)));
+    for (String[] button : buttons) {
+      keyboard.add(createRow(button));
     }
     return ReplyKeyboardMarkup.builder().keyboard(keyboard).build();
   }

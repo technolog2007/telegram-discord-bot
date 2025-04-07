@@ -14,7 +14,6 @@ public class MessageReader {
   public static List<String> read(String fileName) {
     List<String> messageList = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-      log.info("Start read file {}", fileName);
       String line;
       while ((line = reader.readLine()) != null) {
         messageList.add(line);
@@ -28,7 +27,6 @@ public class MessageReader {
 
   public static void clean(String fileName) {
     try (FileWriter writer = new FileWriter(fileName)) {
-
       log.info("File recreated!");
     } catch (IOException e) {
       throw new RuntimeException(e);

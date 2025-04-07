@@ -26,13 +26,13 @@ public class DiscordListener extends WebSocketClient {
 
   @Override
   public void onOpen(ServerHandshake handshakedata) {
-    log.info("Connected to Discord Gateway!");
+    log.info("\uD83D\uDD27 Connected to Discord Gateway!");
   }
 
   private void sendHeartbeat() {
     String heartbeatPayload = "{\"op\": 1, \"d\": null}";
     send(heartbeatPayload);
-    log.info("Sent Heartbeat");
+    log.info("Sent Heartbeat ❤\uFE0F");
   }
 
   @Override
@@ -70,7 +70,7 @@ public class DiscordListener extends WebSocketClient {
 
   @Override
   public void onClose(int code, String reason, boolean remote) {
-    log.warn("Disconnected from Discord: {} - {}", code, reason);
+    log.warn("\uD83D\uDCF5 Disconnected from Discord: {} - {}", code, reason);
   }
 
   @Override
@@ -102,9 +102,9 @@ public class DiscordListener extends WebSocketClient {
   public void connect() {
     try {
       super.connect(); // Викликаємо оригінальний метод WebSocketClient
-      log.info("Connecting to Discord Gateway...");
+      log.info("\uD83D\uDD27 Connecting to Discord Gateway...");
     } catch (Exception e) {
-      log.error("Failed to connect to Discord Gateway", e);
+      log.error("\uD83D\uDCBB\uD83D\uDE13 Failed to connect to Discord Gateway", e);
       scheduleReconnect();
     }
   }
@@ -116,7 +116,7 @@ public class DiscordListener extends WebSocketClient {
         log.info("Disconnected from Discord Gateway");
       }
     } catch (InterruptedException e) {
-      log.error("Error closing WebSocket connection", e);
+      log.error("\uD83D\uDCBB\uD83D\uDE13 Error closing WebSocket connection", e);
       Thread.currentThread().interrupt();
     }
   }

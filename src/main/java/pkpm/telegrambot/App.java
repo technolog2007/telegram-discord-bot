@@ -21,8 +21,6 @@ public class App {
     FileScanner scanner = new FileScanner(FILE_NAME);
     while (true) {
       scanner.scanner();
-      log.info("{}, {}", GROUP_TEST_ID, FILE_NAME);
-      log.info("{}, {}", toLongFromString(GROUP_TEST_ID), FILE_NAME);
       PkpmTelegramBot.getInstance().sendMessageAndCleanFile(toLongFromString(GROUP_TEST_ID), FILE_NAME);
     }
   }

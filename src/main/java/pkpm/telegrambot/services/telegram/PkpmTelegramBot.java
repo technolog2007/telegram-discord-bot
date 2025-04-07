@@ -1,5 +1,6 @@
 package pkpm.telegrambot.services.telegram;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
 import pkpm.telegrambot.services.discord.DiscordNotifier;
@@ -19,6 +22,7 @@ import pkpm.telegrambot.utils.MessageReader;
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
+  @Getter
   private static PkpmTelegramBot instance;
   private final Map<Long, String> input = new HashMap<>();
   private String menuButton = null;
@@ -37,16 +41,20 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     return System.getenv("BOT_TOKEN_TELEGRAM");
   }
 
+  /**
+   * Повертає значення id групи приведене до типу long із конфігураційного файлу
+   * @return - id групи приведене до long
+   */
   private Long getGroupId() {
     return Long.parseLong(System.getenv("GROUP_TEST_ID"));
   }
 
+  /**
+   * Повертає значення id користувача з конфігураційного файлу
+   * @return
+   */
   private String getUserId() {
     return System.getenv("USER_ID_TELEGRAM_1");
-  }
-
-  public static PkpmTelegramBot getInstance() {
-    return instance;
   }
 
   public PkpmTelegramBot() {
@@ -71,6 +79,11 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     }
   }
 
+  /**
+   * Верифікує користувача для роботи з ботом
+   * @param chatId - id чата
+   * @return - булеве значення результату верифікації
+   */
   private boolean verifyUserId(Long chatId) {
     return chatId.toString().equals(getUserId());
   }
@@ -117,7 +130,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Метод аналізує яка кнопка із меню була натиснута і виконує відповідну логіку
+   * Аналізує яка кнопка із меню була натиснута і виконує відповідну логіку
    *
    * @param chatId  - id чату
    * @param message - текстове повідомлення
@@ -143,7 +156,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Метод створює реакції при натисканні кнопок підтвердження
+   * Створює реакції при натисканні кнопок підтвердження
    *
    * @param groupId   - id групи
    * @param chatId    - id чату
@@ -167,6 +180,16 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     clearState(chatId, messageId);
   }
 
+  /**
+   * Перевіряє значення кнопки підтвердження і, якщо підтвердження:
+   * - true - відсилає відповідне повідомлення в групу і чат бота,
+   * - false - відсилає інформаційне повідомлення в чат бота
+   *
+   * @param isConfirm - булеве значення кнопки підтвердження
+   * @param groupId - id групи
+   * @param chatId - id чату
+   * @param sandMessageIfConfirm - сформоване повідомлення для розсилки
+   */
   private void handleButton(boolean isConfirm, Long groupId, Long chatId,
       String sandMessageIfConfirm) {
     if (isConfirm) {
@@ -185,21 +208,21 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   /**
    * Очищує стан кнопок меню і підтвердження
    *
-   * @param chatId
-   * @param messageId
+   * @param chatId -
+   * @param messageId -
    */
   private void clearState(Long chatId, Integer messageId) {
     menuButton = null;
     replyButton = null;
     try {
       execute(InlineKeyboardBuilder.removeKeyboard(chatId, messageId));
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (TelegramApiException e) {
+      log.warn("You have exception, when you try send message!");
     }
   }
 
   /**
-   * Метод перевіряє яка кнопка із меню натиснута і надсилає повідомлення для продовження діалогу
+   * Перевіряє яка кнопка із меню натиснута і надсилає повідомлення для продовження діалогу
    *
    * @return - текстовий опис натиснутої кнопки
    */
@@ -219,7 +242,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Метод створює додаткову клавіатуру
+   * Створює додаткову клавіатуру
    *
    * @param chatId - id чата
    * @param text   - текст повідомлення
@@ -232,7 +255,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Метод створює меню з кнопок для відповідного чату
+   * Створює меню з кнопок для відповідного чату
    *
    * @param chatId - id відповідного чату
    */
@@ -253,7 +276,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Метод створює і надсилає текстове повідомлення в чат
+   * Створює і надсилає текстове повідомлення в чат
    *
    * @param chatId  - id чата
    * @param message - повідомлення
@@ -263,22 +286,30 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Метод створює і надсилає у відповідний чат повідомлення
+   * Створює і надсилає у відповідний чат повідомлення
    *
    * @param message - сформований меседж
    */
   private void sendMessage(SendMessage message) {
     try {
       execute(message);
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (TelegramApiException e) {
+      log.warn("You have exception, when you try send message!");
     }
   }
+
+  /**
+   * Зчитує повідомлення з файлу і відправляє їх по черзі в чат групи телеграма по id і в
+   * групу discord через webhook
+   * @param chatId - id групи
+   * @param fileName - повне ім'я файла
+   */
   public void sendMessageAndCleanFile(Long chatId, String fileName) {
     List<String> messageList = MessageReader.read(fileName);
-    if(!messageList.isEmpty()) {
+    if (!messageList.isEmpty()) {
       for (String message : messageList) {
         sendMessage(createMessage(chatId, message));
+        notifier.sendMessage(message);
       }
       MessageReader.clean(fileName);
     }
