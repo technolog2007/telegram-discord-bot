@@ -55,6 +55,10 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     return System.getenv("USER_ID_TELEGRAM_1");
   }
 
+  private List<String> getVerifyUsersIdList(){
+    return List.of(System.getenv("USERS_LIST").split(";"));
+  }
+
   public PkpmTelegramBot() {
     instance = this;
   }
@@ -83,6 +87,10 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @return - булеве значення результату верифікації
    */
   private boolean verifyUserId(Long chatId) {
+    log.warn("get users list = {}", getVerifyUsersIdList());
+
+
+
     return chatId.toString().equals(getUserId());
   }
 
