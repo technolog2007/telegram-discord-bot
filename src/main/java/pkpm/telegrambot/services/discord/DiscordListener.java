@@ -32,6 +32,7 @@ public class DiscordListener extends WebSocketClient {
   private void sendHeartbeat() {
     String heartbeatPayload = "{\"op\": 1, \"d\": null}";
     send(heartbeatPayload);
+    log.info("Sent Heartbeat");
   }
 
   @Override
@@ -51,6 +52,7 @@ public class DiscordListener extends WebSocketClient {
         String author = data.get("author").get("username").asText();
         log.info("New message from {}: {}", author, content);
       } else if ("11".equals(opCode)) {
+        log.info("Received Heartbeat ACK");
       }
     } catch (Exception e) {
       log.error("Error processing message: ", e);
@@ -68,7 +70,7 @@ public class DiscordListener extends WebSocketClient {
 
   @Override
   public void onClose(int code, String reason, boolean remote) {
-    log.warn("\uD83D\uDCF5 Disconnected from Discord: {} - {}", code, reason);
+    log.warn("Disconnected from Discord: {} - {}", code, reason);
   }
 
   @Override
