@@ -26,7 +26,7 @@ public class DiscordListener extends WebSocketClient {
 
   @Override
   public void onOpen(ServerHandshake handshakedata) {
-    log.info("\uD83D\uDD27 Connected to Discord Gateway!");
+    log.info("Connected to Discord Gateway!");
   }
 
   private void sendHeartbeat() {
