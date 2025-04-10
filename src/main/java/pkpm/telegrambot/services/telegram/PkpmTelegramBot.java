@@ -41,21 +41,14 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   /**
    * Повертає значення id групи приведене до типу long із конфігураційного файлу
+   *
    * @return - id групи приведене до long
    */
   private Long getGroupId() {
-    return Long.parseLong(System.getenv("GROUP_TEST_ID"));
+    return Long.parseLong(System.getenv("GROUP_VTVS_ID"));
   }
 
-  /**
-   * Повертає значення id користувача з конфігураційного файлу
-   * @return
-   */
-  private String getUserId() {
-    return System.getenv("USER_ID_TELEGRAM_1");
-  }
-
-  private List<String> getVerifyUsersIdList(){
+  private List<String> getVerifyUsersIdList() {
     return List.of(System.getenv("USERS_LIST").split(";"));
   }
 
@@ -83,15 +76,18 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   /**
    * Верифікує користувача для роботи з ботом
+   *
    * @param chatId - id чата
    * @return - булеве значення результату верифікації
    */
   private boolean verifyUserId(Long chatId) {
-    log.warn("get users list = {}", getVerifyUsersIdList());
-
-
-
-    return chatId.toString().equals(getUserId());
+    List<String> userList = getVerifyUsersIdList();
+    for (String user : userList) {
+      if (user.equals(chatId.toString())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -187,13 +183,12 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Перевіряє значення кнопки підтвердження і, якщо підтвердження:
-   * - true - відсилає відповідне повідомлення в групу і чат бота,
-   * - false - відсилає інформаційне повідомлення в чат бота
+   * Перевіряє значення кнопки підтвердження і, якщо підтвердження: - true - відсилає відповідне
+   * повідомлення в групу і чат бота, - false - відсилає інформаційне повідомлення в чат бота
    *
-   * @param isConfirm - булеве значення кнопки підтвердження
-   * @param groupId - id групи
-   * @param chatId - id чату
+   * @param isConfirm            - булеве значення кнопки підтвердження
+   * @param groupId              - id групи
+   * @param chatId               - id чату
    * @param sandMessageIfConfirm - сформоване повідомлення для розсилки
    */
   private void handleButton(boolean isConfirm, Long groupId, Long chatId,
@@ -214,7 +209,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   /**
    * Очищує стан кнопок меню і підтвердження
    *
-   * @param chatId -
+   * @param chatId    -
    * @param messageId -
    */
   private void clearState(Long chatId, Integer messageId) {
@@ -305,9 +300,10 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Зчитує повідомлення з файлу і відправляє їх по черзі в чат групи телеграма по id і в
-   * групу discord через webhook
-   * @param chatId - id групи
+   * Зчитує повідомлення з файлу і відправляє їх по черзі в чат групи телеграма по id і в групу
+   * discord через webhook
+   *
+   * @param chatId   - id групи
    * @param fileName - повне ім'я файла
    */
   public void sendMessageAndCleanFile(Long chatId, String fileName) {

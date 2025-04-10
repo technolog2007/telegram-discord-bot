@@ -31,11 +31,10 @@ public class FileScanner {
   }
 
   public void scanner() {
+    log.info("file scanner working");
     while (true) {
-      log.info("file scanner working");
       boolean flag = checkFileUpdateStatus();
       if (flag) {
-        log.info("File is changed! Go to read ...");
         break;
       }
       pause(Integer.parseInt(System.getenv("INTERVAL_TIME")));
