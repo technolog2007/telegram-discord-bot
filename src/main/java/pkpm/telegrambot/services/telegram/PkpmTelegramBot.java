@@ -45,7 +45,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @return - id групи приведене до long
    */
   private Long getGroupId() {
-    return Long.parseLong(System.getenv("GROUP_VTVS_ID"));
+    return Long.parseLong(System.getenv("GROUP_TEST_ID"));
   }
 
   private List<String> getVerifyUsersIdList() {

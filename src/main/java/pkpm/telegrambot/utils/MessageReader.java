@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MessageReader {
 
+  private MessageReader(){
+  }
   public static List<String> read(String fileName) {
     List<String> messageList = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {

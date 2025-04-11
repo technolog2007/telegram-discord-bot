@@ -13,9 +13,6 @@ public class DiscordNotifier {
   private final String webhookUrl;
   private final int expectedCode = 204;
 
-  private final String botToken = System.getenv("BOT_TOKEN_DISCORD");
-  private final String channelId = System.getenv("CHANEL_ID_DISCORD");
-
   public DiscordNotifier(String webhookUrl) {
     if (webhookUrl == null || webhookUrl.isBlank()) {
       throw new IllegalArgumentException("Webhook URL cannot be null or empty.");
