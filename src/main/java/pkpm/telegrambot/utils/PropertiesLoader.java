@@ -19,7 +19,7 @@ public class PropertiesLoader {
         loadFromProject(path, fileProperties);
       } else {
         properties.load(input);
-      }`
+      }
     } catch (IOException ex) {
       log.warn("Sorry, unable to find app.properties!\n{}", ex.getMessage());
     }
