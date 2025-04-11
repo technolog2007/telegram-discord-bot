@@ -10,13 +10,13 @@ import lombok.extern.slf4j.Slf4j;
 public class PropertiesLoader {
 
   private final Properties properties = new Properties();
+  private final String PATH = "src/main/resources/";
+  private final String FILE_PROPERTIES = "app.properties";
 
   public PropertiesLoader() {
-    String fileProperties = "app.properties";
-    String path = "src/main/resources/";
-    try (InputStream input = getClass().getClassLoader().getResourceAsStream(fileProperties)) {
+    try (InputStream input = getClass().getClassLoader().getResourceAsStream(FILE_PROPERTIES)) {
       if (input == null) {
-        loadFromProject(path, fileProperties);
+        loadFromProject(PATH, FILE_PROPERTIES);
       } else {
         properties.load(input);
       }
@@ -26,7 +26,7 @@ public class PropertiesLoader {
   }
 
   private void loadFromProject(String path, String fileProperties) {
-    try (FileInputStream inputStream = new FileInputStream(path + fileProperties)) {
+    try (FileInputStream inputStream = new FileInputStream(PATH + FILE_PROPERTIES)) {
       properties.load(inputStream);
     } catch (IOException exception) {
       log.error("File unable to find app.properties in IDEA!");
