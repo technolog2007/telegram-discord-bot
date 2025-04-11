@@ -15,6 +15,7 @@ public class FileScanner {
   public FileScanner(String fileName) {
     this.file = new File(fileName);
     this.fileDate = new Date(file.lastModified());
+    log.info("File exist : {}", file.exists());
   }
 
   public Date getCurrentFileDate() {
@@ -31,7 +32,6 @@ public class FileScanner {
   }
 
   public void scanner() {
-    log.info("file scanner working");
     while (true) {
       boolean flag = checkFileUpdateStatus();
       if (flag) {

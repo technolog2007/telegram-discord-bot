@@ -13,15 +13,17 @@ public class App {
 
   private static final Logger log = LoggerFactory.getLogger(App.class);
   private static final String FILE_NAME = System.getenv("FILE_NAME");
-  private static final String GROUP_TEST_ID = System.getenv("GROUP_TEST_ID");
+  private static final String GROUP_VTVS_ID = System.getenv("GROUP_VTVS_ID");
 
   public static void main(String[] args) throws Exception {
     startTelegramBot();
 //    startDiscordListener();
     FileScanner scanner = new FileScanner(FILE_NAME);
+    log.info("File name is {}", FILE_NAME);
     while (true) {
+      log.info("file scanner working");
       scanner.scanner();
-      PkpmTelegramBot.getInstance().sendMessageAndCleanFile(toLongFromString(GROUP_TEST_ID), FILE_NAME);
+      PkpmTelegramBot.getInstance().sendMessageAndCleanFile(toLongFromString(GROUP_VTVS_ID), FILE_NAME);
     }
   }
 
