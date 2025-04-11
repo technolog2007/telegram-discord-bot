@@ -17,14 +17,15 @@ public class PropertiesLoader {
     try (InputStream input = getClass().getClassLoader().getResourceAsStream(fileProperties)) {
       if (input == null) {
         loadFromProject(path, fileProperties);
-      }
-      properties.load(input);
+      } else {
+        properties.load(input);
+      }`
     } catch (IOException ex) {
-      log.warn("Sorry, unable to find app.properties!\n{}",ex.getMessage());
+      log.warn("Sorry, unable to find app.properties!\n{}", ex.getMessage());
     }
   }
 
-  private void loadFromProject(String path, String fileProperties){
+  private void loadFromProject(String path, String fileProperties) {
     try (FileInputStream inputStream = new FileInputStream(path + fileProperties)) {
       properties.load(inputStream);
     } catch (IOException exception) {
