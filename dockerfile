@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y unzip
 WORKDIR /app
 
 # Копіюємо всі файли проєкту (включаючи pom.xml та вихідний код)
-COPY . .
+COPY pom.xml .
+
+COPY src/ ./src
 
 # Виконуємо збірку проєкту за допомогою Maven
 RUN mvn clean package

@@ -20,6 +20,7 @@ import pkpm.telegrambot.utils.MessageReader;
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
+  private static final String FILE_REPORT_GENERAL = "C:\\Projects\\graph_reader\\report.txt";
   @Getter
   private static PkpmTelegramBot instance;
   private final Map<Long, String> input = new HashMap<>();
@@ -154,6 +155,14 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       if (menuButton.equals(Buttons.BUTTON_3.getName())) {
         sendReplyButtons(chatId, ChatMessage.INFORM_CHANGE_1.getMessage());
       }
+      if (menuButton.equals(Buttons.BUTTON_6.getName())) {
+        readReportAndSendMessage(chatId, FILE_REPORT_GENERAL);
+        this.menuButton = null;
+      } else if (menuButton.equals(Buttons.BUTTON_7.getName())) {
+        log.warn("Ця частина коду ще не готова!");
+//        readReportAndSendMessage(chatId, FILE_REPORT_EMPLOYEE);
+        this.menuButton = null;
+      }
     }
   }
 
@@ -236,7 +245,11 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       return messageText;
     } else if (Buttons.BUTTON_3.getName().equals(messageText)) {
       return messageText;
-    } else if (menuButton != null) { // уточнити ??
+    } else if (Buttons.BUTTON_6.getName().equals(messageText)) {
+      return messageText;
+    } else if (Buttons.BUTTON_7.getName().equals(messageText)) {
+      return messageText;
+    } else if (menuButton != null) {
       return menuButton;
     }
     return null;
@@ -263,8 +276,9 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private void sendMenu(Long chatId) {
     SendMessage message = SendMessage.builder().chatId(chatId).text(ChatMessage.START.getMessage())
         .build();
-    String[] firstRow = {Buttons.BUTTON_1.getName(), Buttons.BUTTON_2.getName()};
-    String[] secondRow = {Buttons.BUTTON_3.getName()};
+    String[] firstRow = {Buttons.BUTTON_1.getName(), Buttons.BUTTON_2.getName(),
+        Buttons.BUTTON_3.getName()};
+    String[] secondRow = {Buttons.BUTTON_6.getName(), Buttons.BUTTON_7.getName()};
 
     ReplyKeyboardMarkup keyboardMarkup = ReplyKeyboardBuilder.createMultiRowKeyboard(
         List.of(firstRow, secondRow));
@@ -316,4 +330,17 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       MessageReader.clean(fileName);
     }
   }
+
+  private void readReportAndSendMessage(Long chatId, String fileName) {
+    List<String> messageList = MessageReader.read(fileName);
+    String result = "";
+    if (!messageList.isEmpty()) {
+      for (String message : messageList) {
+        result += message + "\n";
+      }
+      sendMessage(createMessage(chatId, result));
+//      MessageReader.clean(fileName); // активувати після настройки
+    }
+  }
+
 }
