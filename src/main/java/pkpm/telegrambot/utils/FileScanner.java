@@ -22,6 +22,10 @@ public class FileScanner {
     return new Date(file.lastModified());
   }
 
+  /**
+   * Перевіряє чи були зміни в файлі. Якщо були - повертає true
+   * @return - булеве значення о результату наявності змін в файлі
+   */
   private boolean checkFileUpdateStatus() {
     if (fileDate.before(getCurrentFileDate())) {
       this.fileDate = getCurrentFileDate();

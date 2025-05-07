@@ -332,6 +332,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   private void readReportAndSendMessage(Long chatId, String fileName) {
+
     List<String> messageList = MessageReader.read(fileName);
     String result = "";
     if (!messageList.isEmpty()) {
