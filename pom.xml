@@ -17,6 +17,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/technolog2007/telegram-discord-bot</url>
+    </repository>
+  </repositories>
+
   <dependencies> <!-- Список бібліотек -->
     <!-- Додаємо залежності тут -->
     <!-- Lombok (зменшує кількість коду) -->
