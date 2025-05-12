@@ -12,6 +12,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import pkpm.company.automation.models.Report;
+import pkpm.company.automation.services.GraphExecutionReport;
+import pkpm.company.automation.services.MakeSnapshot;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
 import pkpm.telegrambot.services.discord.DiscordNotifier;
@@ -20,7 +23,8 @@ import pkpm.telegrambot.utils.MessageReader;
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
-  private static final String FILE_REPORT_GENERAL = "C:\\Projects\\graph_reader\\report.txt";
+  private static final String FILE_REPORT_GENERAL = System.getenv("FILE_REPORT_GENERAL");
+  private static final String GRAPH_NAME = System.getenv("GRAPH_NAME");
   @Getter
   private static PkpmTelegramBot instance;
   private final Map<Long, String> input = new HashMap<>();
@@ -156,14 +160,28 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendReplyButtons(chatId, ChatMessage.INFORM_CHANGE_1.getMessage());
       }
       if (menuButton.equals(Buttons.BUTTON_6.getName())) {
-        readReportAndSendMessage(chatId, FILE_REPORT_GENERAL);
+        log.warn("Формую загальний звіт по виконанню та вивожу в чат telegram:");
+        createReportGeneralAndSendMessage(chatId, GRAPH_NAME);
         this.menuButton = null;
       } else if (menuButton.equals(Buttons.BUTTON_7.getName())) {
-        log.warn("Ця частина коду ще не готова!");
-//        readReportAndSendMessage(chatId, FILE_REPORT_EMPLOYEE);
+        // формує звіт по співробітникам
+        log.warn("Ця частина коду наразі в роботі!");
         this.menuButton = null;
       }
     }
+  }
+
+  /**
+   * Формує звіт, щодо загального виконання графіка по кожній вкладці
+   *
+   * @param graphName - файл графіка
+   */
+  private void createReportGeneralAndSendMessage(Long chatId, String graphName) {
+    GraphExecutionReport executionReport = new GraphExecutionReport();
+    List<Report> listOfResults = executionReport.getDateForGeneralReport(
+        new MakeSnapshot(graphName).getBs());
+    String report = executionReport.writeResultToString(listOfResults);
+    sendMessage(createMessage(chatId, report));
   }
 
   /**
@@ -330,18 +348,4 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       MessageReader.clean(fileName);
     }
   }
-
-  private void readReportAndSendMessage(Long chatId, String fileName) {
-
-    List<String> messageList = MessageReader.read(fileName);
-    String result = "";
-    if (!messageList.isEmpty()) {
-      for (String message : messageList) {
-        result += message + "\n";
-      }
-      sendMessage(createMessage(chatId, result));
-//      MessageReader.clean(fileName); // активувати після настройки
-    }
-  }
-
 }
