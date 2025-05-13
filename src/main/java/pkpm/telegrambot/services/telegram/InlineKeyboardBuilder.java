@@ -94,5 +94,12 @@ public class InlineKeyboardBuilder {
     return editMarkup;
   }
 
+  public static InlineKeyboardMarkup createColumnKeyboard(List<String> buttons) {
+    List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+    for (int i = 0; i < buttons.size(); i++) {
+      keyboard.add(createRow(buttons.get(i)));
+    }
+    return createInlineKeyboard(keyboard);
+  }
 
 }

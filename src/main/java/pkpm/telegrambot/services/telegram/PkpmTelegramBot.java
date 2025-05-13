@@ -1,5 +1,6 @@
 package pkpm.telegrambot.services.telegram;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +11,12 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pkpm.company.automation.models.Report;
+import pkpm.company.automation.models.Employees;
+import pkpm.company.automation.models.ReportEmployee;
+import pkpm.company.automation.models.ReportGeneral;
 import pkpm.company.automation.services.GraphExecutionReport;
 import pkpm.company.automation.services.MakeSnapshot;
 import pkpm.telegrambot.models.Buttons;
@@ -23,7 +27,6 @@ import pkpm.telegrambot.utils.MessageReader;
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
-  private static final String FILE_REPORT_GENERAL = System.getenv("FILE_REPORT_GENERAL");
   private static final String GRAPH_NAME = System.getenv("GRAPH_NAME");
   @Getter
   private static PkpmTelegramBot instance;
@@ -166,6 +169,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       } else if (menuButton.equals(Buttons.BUTTON_7.getName())) {
         // формує звіт по співробітникам
         log.warn("Ця частина коду наразі в роботі!");
+        sendInlineEmployeesButtons(chatId, "Оберіть виконавця \uD83D\uDC47");
+        createReportEmployeesAndSendMessage(chatId, GRAPH_NAME);
         this.menuButton = null;
       }
     }
@@ -178,10 +183,17 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    */
   private void createReportGeneralAndSendMessage(Long chatId, String graphName) {
     GraphExecutionReport executionReport = new GraphExecutionReport();
-    List<Report> listOfResults = executionReport.getDateForGeneralReport(
+    List<ReportGeneral> listOfResults = executionReport.getDateForGeneralReport(
         new MakeSnapshot(graphName).getBs());
     String report = executionReport.writeResultToString(listOfResults);
     sendMessage(createMessage(chatId, report));
+  }
+
+  private void createReportEmployeesAndSendMessage(Long chatId, String graphName) {
+    GraphExecutionReport executionReport = new GraphExecutionReport();
+    Map<Employees, List<ReportEmployee>> result = executionReport.getListOfEmployeesReports(
+        new MakeSnapshot(graphName).getBs());
+    sendMessage(createMessage(chatId, result.size() + ""));
   }
 
   /**
@@ -283,6 +295,14 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     SendMessage message = SendMessage.builder().chatId(chatId).text(text).build();
     message.setReplyMarkup(InlineKeyboardBuilder.createSingleRowKeyboard(Buttons.BUTTON_4.getName(),
         Buttons.BUTTON_5.getName()));
+    sendMessage(message);
+  }
+
+  private void sendInlineEmployeesButtons(Long chatId, String text) {
+    SendMessage message = SendMessage.builder().chatId(chatId).text(text).build();
+    List<String> buttons = Arrays.stream(Employees.values()).map(Employees::getName).toList();
+    InlineKeyboardMarkup ikm = InlineKeyboardBuilder.createColumnKeyboard(buttons);
+    message.setReplyMarkup(ikm);
     sendMessage(message);
   }
 
