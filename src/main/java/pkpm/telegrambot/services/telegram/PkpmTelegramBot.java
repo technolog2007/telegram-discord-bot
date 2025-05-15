@@ -75,11 +75,42 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       if (message != null && message.getChat().isUserChat() && message.hasText()) {
         selectAction(message, chatId);
       } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
-        confirmSelection(callbackQuery, chatId);
+        String pressButton = callbackQuery.getData();
+        if (checkPressButtonIsConfirm(pressButton)) {
+          confirmSelection(callbackQuery, chatId);
+        } else if (checkPressButtonIsEmployee(pressButton)) {
+        // вивести звіт по відповідному виконавцю в чат бота
+          createReportEmployeesAndSendMessage(chatId, GRAPH_NAME, pressButton);
+        }
       } else {
         createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
       }
     }
+  }
+
+  /**
+   * Перевіряє чи була натиснута кнопка підтвердження
+   *
+   * @param pressButton - натиснута інлайн кнопка
+   * @return - true - якщо натиснута кнопка підтвердження; false - якщо натиснута інша кнопка
+   */
+  private boolean checkPressButtonIsConfirm(String pressButton) {
+    return pressButton.equals(Buttons.BUTTON_4.getName()) || pressButton.equals(
+        Buttons.BUTTON_5.getName());
+  }
+
+  /**
+   * Перевіряє чи була натиснута кнопка вибору співробітника
+   *
+   * @param pressButton - натиснута інлайн кнопка
+   * @return - true - якщо натиснута кнопка вибору працівника; false - якщо натиснута інша кнопка
+   */
+  private boolean checkPressButtonIsEmployee(String pressButton) {
+    return pressButton.equals(Employees.EMPLOYEE_1.getName()) ||
+        pressButton.equals(Employees.EMPLOYEE_2.getName()) ||
+        pressButton.equals(Employees.EMPLOYEE_3.getName()) ||
+        pressButton.equals(Employees.EMPLOYEE_4.getName()) ||
+        pressButton.equals(Employees.EMPLOYEE_5.getName());
   }
 
   /**
@@ -170,7 +201,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         // формує звіт по співробітникам
         log.warn("Ця частина коду наразі в роботі!");
         sendInlineEmployeesButtons(chatId, "Оберіть виконавця \uD83D\uDC47");
-        createReportEmployeesAndSendMessage(chatId, GRAPH_NAME);
         this.menuButton = null;
       }
     }
@@ -189,11 +219,12 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     sendMessage(createMessage(chatId, report));
   }
 
-  private void createReportEmployeesAndSendMessage(Long chatId, String graphName) {
+  private void createReportEmployeesAndSendMessage(Long chatId, String graphName, String employee) {
     GraphExecutionReport executionReport = new GraphExecutionReport();
     Map<Employees, List<ReportEmployee>> result = executionReport.getListOfEmployeesReports(
         new MakeSnapshot(graphName).getBs());
-    sendMessage(createMessage(chatId, result.size() + ""));
+    String report = executionReport.writeResulForReportEmployeetToString(result.get(employee));
+    sendMessage(createMessage(chatId, report));
   }
 
   /**
