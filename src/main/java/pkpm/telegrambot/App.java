@@ -14,12 +14,12 @@ import pkpm.telegrambot.utils.PropertiesLoader;
 public class App {
 
   private static final Logger log = LoggerFactory.getLogger(App.class);
-  private static final String FILE_NAME = new PropertiesLoader().getProperty("FILE_NAME");
+  private static final String FILE_NAME = System.getenv("FILE_NAME");
   private static final String GROUP_VTVS_ID = System.getenv("GROUP_TEST_ID");
 
   public static void main(String[] args) throws Exception {
     startTelegramBot();
-    startDiscordListener();
+//    startDiscordListener();
     FileScanner scanner = new FileScanner(FILE_NAME);
     log.info("File name is {}", FILE_NAME);
     while (true) {
