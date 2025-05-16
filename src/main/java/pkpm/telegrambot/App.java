@@ -9,7 +9,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pkpm.telegrambot.services.discord.DiscordListener;
 import pkpm.telegrambot.services.telegram.PkpmTelegramBot;
 import pkpm.telegrambot.utils.FileScanner;
-import pkpm.telegrambot.utils.PropertiesLoader;
 
 public class App {
 
