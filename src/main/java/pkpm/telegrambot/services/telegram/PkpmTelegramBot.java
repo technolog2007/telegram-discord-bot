@@ -1,6 +1,5 @@
 package pkpm.telegrambot.services.telegram;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,14 +10,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pkpm.company.automation.models.Employees;
-import pkpm.company.automation.models.ReportEmployee;
-import pkpm.company.automation.models.ReportGeneral;
-import pkpm.company.automation.services.GraphExecutionReport;
-import pkpm.company.automation.services.MakeSnapshot;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
 import pkpm.telegrambot.services.discord.DiscordNotifier;
@@ -27,7 +20,6 @@ import pkpm.telegrambot.utils.MessageReader;
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
-  private static final String GRAPH_NAME = "Y:\\Графіки роботи ВТВС\\График выдачи докуметации.xlsx";
   @Getter
   private static PkpmTelegramBot instance;
   private final Map<Long, String> input = new HashMap<>();
@@ -53,7 +45,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @return - id групи приведене до long
    */
   private Long getGroupId() {
-    return Long.parseLong(System.getenv("GROUP_TEST_ID"));
+    return Long.parseLong(System.getenv("GROUP_VTVS_ID"));
   }
 
   private List<String> getVerifyUsersIdList() {
@@ -75,12 +67,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       if (message != null && message.getChat().isUserChat() && message.hasText()) {
         selectAction(message, chatId);
       } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
-        String pressButton = callbackQuery.getData();
-        if (checkPressButtonIsConfirm(pressButton)) {
           confirmSelection(callbackQuery, chatId);
-        } else if (checkPressButtonIsEmployee(pressButton)) {
-          createReportEmployeesAndSendMessage(chatId, GRAPH_NAME, pressButton);
-        }
       } else {
         createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
       }
@@ -96,20 +83,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private boolean checkPressButtonIsConfirm(String pressButton) {
     return pressButton.equals(Buttons.BUTTON_4.getName()) || pressButton.equals(
         Buttons.BUTTON_5.getName());
-  }
-
-  /**
-   * Перевіряє чи була натиснута кнопка вибору співробітника
-   *
-   * @param pressButton - натиснута інлайн кнопка
-   * @return - true - якщо натиснута кнопка вибору працівника; false - якщо натиснута інша кнопка
-   */
-  private boolean checkPressButtonIsEmployee(String pressButton) {
-    return pressButton.equals(Employees.EMPLOYEE_1.getName()) ||
-        pressButton.equals(Employees.EMPLOYEE_2.getName()) ||
-        pressButton.equals(Employees.EMPLOYEE_3.getName()) ||
-        pressButton.equals(Employees.EMPLOYEE_4.getName()) ||
-        pressButton.equals(Employees.EMPLOYEE_5.getName());
   }
 
   /**
@@ -192,37 +165,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       if (menuButton.equals(Buttons.BUTTON_3.getName())) {
         sendReplyButtons(chatId, ChatMessage.INFORM_CHANGE_1.getMessage());
       }
-      if (menuButton.equals(Buttons.BUTTON_6.getName())) {
-        log.warn("Формую загальний звіт та вивожу в чат telegram:");
-        createReportGeneralAndSendMessage(chatId, GRAPH_NAME);
-        this.menuButton = null;
-      } else if (menuButton.equals(Buttons.BUTTON_7.getName())) {
-        log.warn("Формую звіт по виконавцям та вивожу в чат telegram:");
-        sendInlineEmployeesButtons(chatId, "Оберіть виконавця \uD83D\uDC47");
-      }
     }
-  }
-
-  /**
-   * Формує звіт, щодо загального виконання графіка по кожній вкладці
-   *
-   * @param graphName - файл графіка
-   */
-  private void createReportGeneralAndSendMessage(Long chatId, String graphName) {
-    GraphExecutionReport executionReport = new GraphExecutionReport();
-    List<ReportGeneral> listOfResults = executionReport.getDateForGeneralReport(
-        new MakeSnapshot(graphName).getBs());
-    String report = executionReport.writeResultToString(listOfResults);
-    sendMessage(createMessage(chatId, report));
-  }
-
-  private void createReportEmployeesAndSendMessage(Long chatId, String graphName, String employee) {
-    GraphExecutionReport executionReport = new GraphExecutionReport();
-    Map<Employees, List<ReportEmployee>> result = executionReport.getListOfEmployeesReports(
-        new MakeSnapshot(graphName).getBs());
-    String report = executionReport.writeResulForReportEmployeetToString(result.get(Employees.fromName(employee)));
-    this.menuButton = null;
-    sendMessage(createMessage(chatId, report));
   }
 
   /**
@@ -324,14 +267,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     SendMessage message = SendMessage.builder().chatId(chatId).text(text).build();
     message.setReplyMarkup(InlineKeyboardBuilder.createSingleRowKeyboard(Buttons.BUTTON_4.getName(),
         Buttons.BUTTON_5.getName()));
-    sendMessage(message);
-  }
-
-  private void sendInlineEmployeesButtons(Long chatId, String text) {
-    SendMessage message = SendMessage.builder().chatId(chatId).text(text).build();
-    List<String> buttons = Arrays.stream(Employees.values()).map(Employees::getName).toList();
-    InlineKeyboardMarkup ikm = InlineKeyboardBuilder.createColumnKeyboard(buttons);
-    message.setReplyMarkup(ikm);
     sendMessage(message);
   }
 
