@@ -27,7 +27,7 @@ import pkpm.telegrambot.utils.MessageReader;
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
-  private static final String GRAPH_NAME = "Y:\\Графіки роботи ВТВС\\График выдачи докуметации.xlsx";
+  private static final String GRAPH_NAME = System.getenv("GRAPH_NAME");
   @Getter
   private static PkpmTelegramBot instance;
   private final Map<Long, String> input = new HashMap<>();

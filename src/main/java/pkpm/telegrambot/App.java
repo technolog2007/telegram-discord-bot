@@ -18,7 +18,7 @@ public class App {
 
   public static void main(String[] args) throws Exception {
     startTelegramBot();
-//    startDiscordListener();
+    startDiscordListener();
     FileScanner scanner = new FileScanner(FILE_NAME);
     log.info("File name is {}", FILE_NAME);
     while (true) {
