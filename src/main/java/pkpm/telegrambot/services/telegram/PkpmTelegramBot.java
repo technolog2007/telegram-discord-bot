@@ -68,7 +68,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   public void onUpdateReceived(Update update) {
     Message message = update.getMessage();
     CallbackQuery callbackQuery = update.getCallbackQuery();
-
     Long chatId = message != null ? message.getChatId()
         : update.getCallbackQuery().getMessage().getChatId();
     if (verifyUserId(chatId)) {
@@ -172,7 +171,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private void createMenu(Long chatId, String message) {
     if (menuButton == null) {
       sendMenu(chatId);
-      input.put(chatId, message);
+//      input.put(chatId, message);
     }
   }
 
