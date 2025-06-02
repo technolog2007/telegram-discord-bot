@@ -37,6 +37,7 @@ public class FileScanner {
 
   public void scanner() {
     while (true) {
+      log.info("peek...");
       boolean flag = checkFileUpdateStatus();
       if (flag) {
         break;

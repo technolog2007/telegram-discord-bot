@@ -72,8 +72,14 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     Long chatId = message != null ? message.getChatId()
         : update.getCallbackQuery().getMessage().getChatId();
     if (verifyUserId(chatId)) {
+      // якщо повідомлення не нуль,відправник повідомлення юзер і повідомлення - текст
+      // то визначаємо яка кнопка із меню натиснута і виконуємо відповідну дію, або
+      // якщо, просто введений, якийсь "лівий" текст - повертаємо меню
+      //
       if (message != null && message.getChat().isUserChat() && message.hasText()) {
         selectAction(message, chatId);
+        // якщо натиснута кнопка підтвердження, визначаємо, що саме треба підтвердити і
+        // виконуємо відповідну дію
       } else if (callbackQuery != null && update.hasCallbackQuery() && menuButton != null) {
         String pressButton = callbackQuery.getData();
         if (checkPressButtonIsConfirm(pressButton)) {
@@ -81,9 +87,9 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         } else if (checkPressButtonIsEmployee(pressButton)) {
           createReportEmployeesAndSendMessage(chatId, GRAPH_NAME, pressButton);
         }
-      } else {
-        createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
       }
+    } else {
+      createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
     }
   }
 
@@ -129,7 +135,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Виконує вибір кнопки зі стартової клавіатури
+   * Визначає, яка кнопка була натиснута, чи був введений якийсь текст Виконує вибір кнопки зі
+   * стартової клавіатури
    *
    * @param message
    * @param chatId
@@ -220,7 +227,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     GraphExecutionReport executionReport = new GraphExecutionReport();
     Map<Employees, List<ReportEmployee>> result = executionReport.getListOfEmployeesReports(
         new MakeSnapshot(graphName).getBs());
-    String report = executionReport.writeResulForReportEmployeetToString(result.get(Employees.fromName(employee)));
+    String report = executionReport.writeResulForReportEmployeetToString(
+        result.get(Employees.fromName(employee)));
     this.menuButton = null;
     sendMessage(createMessage(chatId, report));
   }
@@ -291,7 +299,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Перевіряє яка кнопка із меню натиснута і надсилає повідомлення для продовження діалогу
+   * Перевіряє яка кнопка із меню натиснута і надсилає повідомлення для продовження діалогу. Або
+   * якщо введений якийсь текст - виводить стартове меню
    *
    * @return - текстовий опис натиснутої кнопки
    */
