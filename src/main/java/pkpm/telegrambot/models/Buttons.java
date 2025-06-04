@@ -10,7 +10,6 @@ public enum Buttons {
   BUTTON_7("\uD83D\uDCCA Employee Report");
   private final String button;
   Buttons(String button) {
-
     this.button = button;
   }
   public String getName() {
