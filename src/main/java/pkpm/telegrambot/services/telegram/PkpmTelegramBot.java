@@ -113,6 +113,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       makeButtonAction(chatId, messageText, currentUserAction);
     } else {
       log.warn("Вивід меню ...");
+      userStates.remove(chatId);
       sendMenu(chatId);
     }
     log.info("Current sum status: {}, \"{}\", {}", chatId, messageText, currentUserAction);
