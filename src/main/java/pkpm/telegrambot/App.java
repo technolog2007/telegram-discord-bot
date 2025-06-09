@@ -24,7 +24,7 @@ public class App {
     while (true) {
       log.info("file scanner working");
       scanner.scanner();
-      PkpmTelegramBot.getInstance().sendMessageAndCleanFile(toLongFromString(GROUP_VTVS_ID), FILE_NAME);
+//      PkpmTelegramBot.getInstance().sendMessageAndCleanFile(toLongFromString(GROUP_VTVS_ID), FILE_NAME);
     }
   }
 
