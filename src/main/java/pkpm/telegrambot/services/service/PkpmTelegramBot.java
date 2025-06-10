@@ -34,6 +34,8 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private final Long groupId;
   private final List<String> verifiedUsers;
   private final String graphName;
+  private final GraphExecutionReport executionReport;
+
   @Getter
   public final DiscordNotifier notifier;
   private final Map<Long, ButtonAction> userStates = new ConcurrentHashMap<>();
@@ -46,7 +48,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     this.verifiedUsers = List.of(usersListString.split(";"));
     this.graphName = graphName;
     this.notifier = notifier;
-    // ... ініціалізація інших залежностей
+    this.executionReport = new GraphExecutionReport();
   }
 
   @Override
@@ -205,7 +207,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       case BUTTON_7 -> {
         log.warn("Формую звіт по виконавцям та вивожу в чат telegram:");
         sendInlineEmployeesButtons(chatId, "Оберіть виконавця \uD83D\uDC47");
-        userStates.remove(chatId);
       }
       default -> log.info("Something wrong with menuButtonAction()!");
     }
@@ -236,12 +237,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         pressButton.equals(Employees.EMPLOYEE_5.getName());
   }
 
-  /**
-   * Перевіряє підтвердження і виконує сценарій
-   *
-   * @param callbackQuery
-   * @param chatId
-   */
   private void confirmSelection(CallbackQuery callbackQuery, Long chatId,
       ButtonAction currentUserAction) {
     currentUserAction.setReplyButton(callbackQuery.getData());
@@ -251,13 +246,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         messageId);
   }
 
-  /**
-   * Формує звіт, щодо загального виконання графіка по кожній вкладці
-   *
-   * @param graphName - файл графіка
-   */
   private void createReportGeneralAndSendMessage(Long chatId, String graphName) {
-    GraphExecutionReport executionReport = new GraphExecutionReport();
     List<ReportGeneral> listOfResults = executionReport.getDateForGeneralReport(
         new MakeSnapshot(graphName).getBs());
     String report = executionReport.writeResultToString(listOfResults);
@@ -265,7 +254,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   private void createReportEmployeesAndSendMessage(Long chatId, String graphName, String employee) {
-    GraphExecutionReport executionReport = new GraphExecutionReport();
     Map<Employees, List<ReportEmployee>> result = executionReport.getListOfEmployeesReports(
         new MakeSnapshot(graphName).getBs());
     String report = executionReport.writeResulForReportEmployeetToString(
