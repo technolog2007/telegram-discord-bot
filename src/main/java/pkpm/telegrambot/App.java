@@ -7,34 +7,43 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pkpm.telegrambot.services.discord.DiscordListener;
-import pkpm.telegrambot.services.telegram.PkpmTelegramBot;
+import pkpm.telegrambot.services.discord.DiscordNotifier;
+import pkpm.telegrambot.services.service.PkpmTelegramBot;
 import pkpm.telegrambot.utils.FileScanner;
 
 public class App {
 
   private static final Logger log = LoggerFactory.getLogger(App.class);
-  private static final String FILE_NAME = System.getenv("FILE_NAME");
+  private static final String REPORT_FILE_NAME = System.getenv("REPORT_FILE_NAME");
+  private static final String GRAPH_NAME = System.getenv("GRAPH_NAME");
   private static final String GROUP_VTVS_ID = System.getenv("GROUP_TEST_ID");
+  private static final String BOT_USER_NAME = System.getenv("BOT_USER_NAME");
+  private static final String BOT_TOKEN_TELEGRAM = System.getenv("BOT_TOKEN_TELEGRAM");
+  private static final String USERS_LIST = System.getenv("USERS_LIST");
+  private static final String WEB_HOOK_DISCORD = System.getenv("WEB_HOOK_DISCORD");
+  private static final long GROUP_TEST_ID = Long.parseLong(System.getenv("GROUP_TEST_ID"));
 
   public static void main(String[] args) throws Exception {
-    startTelegramBot();
+    DiscordNotifier discordNotifier = new DiscordNotifier(WEB_HOOK_DISCORD);
+    PkpmTelegramBot bot = new PkpmTelegramBot(BOT_USER_NAME, BOT_TOKEN_TELEGRAM, GROUP_TEST_ID,
+        USERS_LIST, GRAPH_NAME, discordNotifier);
+    startTelegramBot(bot);
     startDiscordListener();
-    FileScanner scanner = new FileScanner(FILE_NAME);
-    log.info("File name is {}", FILE_NAME);
+    FileScanner scanner = new FileScanner(REPORT_FILE_NAME);
+    log.info("File name is {}", REPORT_FILE_NAME);
     while (true) {
       log.info("file scanner working");
       scanner.scanner();
-//      PkpmTelegramBot.getInstance().sendMessageAndCleanFile(toLongFromString(GROUP_VTVS_ID), FILE_NAME);
+      bot.sendMessageAndCleanFile(toLongFromString(GROUP_VTVS_ID), REPORT_FILE_NAME);
     }
   }
 
 
-
-  private static void startTelegramBot() throws TelegramApiException {
+  private static void startTelegramBot(PkpmTelegramBot bot) throws TelegramApiException {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
     try {
       log.info("Registering bot...");
-      telegramBotsApi.registerBot(new PkpmTelegramBot());
+      telegramBotsApi.registerBot(bot);
     } catch (TelegramApiRequestException e) {
       log.error(
           "Failed to register bot(check internet connection / bot token or make sure only one instance of bot is running).",
@@ -48,7 +57,7 @@ public class App {
     client.connectBlocking();
   }
 
-  private static Long toLongFromString(String line){
+  private static Long toLongFromString(String line) {
     return Long.valueOf(line);
   }
 }

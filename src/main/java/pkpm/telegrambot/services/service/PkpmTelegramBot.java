@@ -1,4 +1,4 @@
-package pkpm.telegrambot.services.telegram;
+package pkpm.telegrambot.services.service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,37 +23,49 @@ import pkpm.telegrambot.models.ButtonAction;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
 import pkpm.telegrambot.services.discord.DiscordNotifier;
+import pkpm.telegrambot.utils.InlineKeyboardBuilder;
 import pkpm.telegrambot.utils.MessageReader;
+import pkpm.telegrambot.utils.ReplyKeyboardBuilder;
 
 @Slf4j
 public class PkpmTelegramBot extends TelegramLongPollingBot {
 
-  private static final String GRAPH_NAME = System.getenv("GRAPH_NAME");
+  private final String botUsername;
+  private final String botToken;
+  private final Long groupId;
+  private final List<String> verifiedUsers;
+  private final String graphName;
   @Getter
-  public final DiscordNotifier notifier = new DiscordNotifier(System.getenv("WEB_HOOK_DISCORD"));
+  public final DiscordNotifier notifier;
   private final Map<Long, ButtonAction> userStates = new ConcurrentHashMap<>();
+
+  public PkpmTelegramBot(String botUsername, String botToken, Long groupId, String usersListString,
+      String graphName, DiscordNotifier notifier) {
+    this.botUsername = botUsername;
+    this.botToken = botToken;
+    this.groupId = groupId;
+    this.verifiedUsers = List.of(usersListString.split(";"));
+    this.graphName = graphName;
+    this.notifier = notifier;
+    // ... ініціалізація інших залежностей
+  }
 
   @Override
   public String getBotUsername() {
-    return System.getenv("BOT_USER_NAME");
+    return this.botUsername;
   }
 
   @Override
   public String getBotToken() {
-    return System.getenv("BOT_TOKEN_TELEGRAM");
+    return this.botToken;
   }
 
-  /**
-   * Повертає значення id групи приведене до типу long із конфігураційного файлу
-   *
-   * @return - id групи приведене до long
-   */
   private Long getGroupId() {
-    return Long.parseLong(System.getenv("GROUP_TEST_ID"));
+    return this.groupId;
   }
 
   private List<String> getVerifyUsersIdList() {
-    return List.of(System.getenv("USERS_LIST").split(";"));
+    return this.verifiedUsers;
   }
 
   /**
@@ -62,7 +74,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @param chatId - id чата
    * @return - булеве значення результату верифікації
    */
-  private boolean verifyUserId(Long chatId) {
+  private boolean verifyUsersIdList(Long chatId) {
     List<String> userList = getVerifyUsersIdList();
     for (String user : userList) {
       if (user.equals(chatId.toString())) {
@@ -74,26 +86,44 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    Message message = update.getMessage();
-    CallbackQuery callbackQuery = update.getCallbackQuery();
-    Long chatId = message != null ? message.getChatId()
-        : update.getCallbackQuery().getMessage().getChatId();
+    Long chatId;
+    if (update.hasMessage() && update.getMessage().getChatId() != null) {
+      chatId = update.getMessage().getChatId();
+    } else if (update.hasCallbackQuery() && update.getCallbackQuery().getMessage() != null
+        && update.getCallbackQuery().getMessage().getChatId() != null) {
+      chatId = update.getCallbackQuery().getMessage().getChatId();
+    } else {
+      log.warn("Received update without chat ID: {}", update); // Логуємо попередження
+      return;
+    }
+
+    if (!verifyUsersIdList(chatId)) {
+      sendMessage(createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage()));
+      return;
+    }
+
     ButtonAction currentUserAction = userStates.computeIfAbsent(chatId, k -> new ButtonAction());
-    if (verifyUserId(chatId)) {
-      if (message != null && message.getChat().isUserChat() && message.hasText()) {
-        selectMenuAction(message.getText(), chatId, currentUserAction);
-      } else if (callbackQuery != null && update.hasCallbackQuery()
-          && userStates.get(chatId) != null) {
-        String pressButton = callbackQuery.getData();
+
+    if (update.hasMessage() && update.getMessage().hasText() && update.getMessage().getChat()
+        .isUserChat()) {
+      selectMenuAction(update.getMessage().getText(), chatId, currentUserAction);
+    } else if (update.hasCallbackQuery()) {
+      String pressButton = update.getCallbackQuery().getData();
+      if (currentUserAction.getButton() != null) {
         if (checkPressButtonIsConfirm(pressButton)) {
-          confirmSelection(callbackQuery, chatId, currentUserAction);
+          confirmSelection(update.getCallbackQuery(), chatId, currentUserAction);
         } else if (checkPressButtonIsEmployee(pressButton)) {
-          createReportEmployeesAndSendMessage(chatId, GRAPH_NAME, pressButton);
+          createReportEmployeesAndSendMessage(chatId, graphName, pressButton);
         }
         userStates.remove(chatId);
+      } else {
+        log.warn("User {} pressed callback button '{}' without active dialogue state. Ignoring.",
+            chatId, pressButton);
+        sendMenu(chatId);
       }
     } else {
-      createMessage(chatId, ChatMessage.INFORM_NOT_IDENTIFY_USER.getMessage());
+      log.info("Received unsupported update type or message: {}", update);
+      sendMenu(chatId);
     }
   }
 
@@ -141,7 +171,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendMessage(createMessage(chatId, ChatMessage.INPUT_POSITION.getMessage()));
         currentUserAction.setAdditionalDialogue(true);
       }
-      default -> log.error("Це натискання не потребує додаткового повідомлення!");
+      default -> log.info("Це натискання не потребує додаткового повідомлення!");
     }
   }
 
@@ -170,7 +200,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       }
       case BUTTON_6 -> {
         log.warn("Формую загальний звіт та вивожу в чат telegram:");
-        createReportGeneralAndSendMessage(chatId, GRAPH_NAME);
+        createReportGeneralAndSendMessage(chatId, graphName);
         userStates.remove(chatId);
       }
       case BUTTON_7 -> {
@@ -178,7 +208,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendInlineEmployeesButtons(chatId, "Оберіть виконавця \uD83D\uDC47");
         userStates.remove(chatId);
       }
-      default -> log.error("Something wrong with menuButtonAction()!");
+      default -> log.info("Something wrong with menuButtonAction()!");
     }
   }
 
@@ -242,7 +272,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     String report = executionReport.writeResulForReportEmployeetToString(
         result.get(Employees.fromName(employee)));
     sendMessage(createMessage(chatId, report));
-//    this.buttonAction = null;
   }
 
   /**
@@ -264,7 +293,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         }
         case BUTTON_3 ->
             handleButton(isConfirm, groupId, chatId, ChatMessage.INFORM_CHANGE_2.getMessage());
-        default -> log.error("Something wrong with replyButtonAction()!");
+        default -> log.info("Something wrong with replyButtonAction()!");
       }
       clearState(chatId, messageId);
       sendMenu(chatId);
@@ -303,8 +332,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    */
   private void clearState(Long chatId, Integer messageId) {
     userStates.remove(chatId);
-//    this.buttonAction = null;
-//    this.replyButton = null;
     log.info("Clear buttons state successful!");
     try {
       execute(InlineKeyboardBuilder.removeKeyboard(chatId, messageId));
@@ -396,4 +423,5 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       MessageReader.clean(fileName);
     }
   }
+
 }

@@ -1,14 +1,13 @@
-package pkpm.telegrambot.services.telegram;
+package pkpm.telegrambot.utils;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-public abstract class ReplyKeyboardBuilder extends PkpmTelegramBot {
+public abstract class ReplyKeyboardBuilder {
 
   private ReplyKeyboardBuilder() {
-    // Add a private constructor to hide the implicit public one.
   }
 
   private static KeyboardRow createRow(String... buttons) {

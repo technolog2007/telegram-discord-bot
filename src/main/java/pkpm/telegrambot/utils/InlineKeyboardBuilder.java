@@ -1,4 +1,4 @@
-package pkpm.telegrambot.services.telegram;
+package pkpm.telegrambot.utils;
 
 import java.util.ArrayList;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
