@@ -42,7 +42,6 @@ public class App {
     }
   }
 
-
   private static void startTelegramBot(PkpmTelegramBot bot) throws TelegramApiException {
     TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
     try {

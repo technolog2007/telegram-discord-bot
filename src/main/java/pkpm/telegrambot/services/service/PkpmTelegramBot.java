@@ -60,10 +60,6 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     return this.groupId;
   }
 
-  private List<String> getVerifyUsersIdList() {
-    return this.verifiedUsers;
-  }
-
   /**
    * Верифікує користувача для роботи з ботом
    *
@@ -161,6 +157,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendMessage(createMessage(chatId, ChatMessage.INPUT_POSITION.getMessage()));
         currentUserAction.setAdditionalDialogue(true);
       }
+      case BUTTON_3, BUTTON_6, BUTTON_7 -> currentUserAction.setAdditionalDialogue(false);
       default -> log.info("Це натискання не потребує додаткового повідомлення!");
     }
   }
