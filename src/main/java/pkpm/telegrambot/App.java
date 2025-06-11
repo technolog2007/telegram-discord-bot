@@ -6,9 +6,12 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import pkpm.company.automation.services.GraphExecutionReport;
 import pkpm.telegrambot.services.discord.DiscordListener;
 import pkpm.telegrambot.services.discord.DiscordNotifier;
 import pkpm.telegrambot.services.service.PkpmTelegramBot;
+import pkpm.telegrambot.services.service.ReportService;
+import pkpm.telegrambot.services.service.ReportServiceImpl;
 import pkpm.telegrambot.utils.FileScanner;
 
 public class App {
@@ -25,8 +28,9 @@ public class App {
 
   public static void main(String[] args) throws Exception {
     DiscordNotifier discordNotifier = new DiscordNotifier(WEB_HOOK_DISCORD);
+    ReportService reportService = new ReportServiceImpl(new GraphExecutionReport());
     PkpmTelegramBot bot = new PkpmTelegramBot(BOT_USER_NAME, BOT_TOKEN_TELEGRAM, GROUP_TEST_ID,
-        USERS_LIST, GRAPH_NAME, discordNotifier);
+        USERS_LIST, GRAPH_NAME, discordNotifier, reportService);
     startTelegramBot(bot);
     startDiscordListener();
     FileScanner scanner = new FileScanner(REPORT_FILE_NAME);

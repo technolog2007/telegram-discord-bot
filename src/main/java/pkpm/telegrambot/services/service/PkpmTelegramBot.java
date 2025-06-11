@@ -14,10 +14,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pkpm.company.automation.models.Employees;
-import pkpm.company.automation.models.ReportEmployee;
-import pkpm.company.automation.models.ReportGeneral;
-import pkpm.company.automation.services.GraphExecutionReport;
-import pkpm.company.automation.services.MakeSnapshot;
 import pkpm.telegrambot.models.ButtonAction;
 import pkpm.telegrambot.models.Buttons;
 import pkpm.telegrambot.models.ChatMessage;
@@ -34,21 +30,20 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   private final Long groupId;
   private final List<String> verifiedUsers;
   private final String graphName;
-  private final GraphExecutionReport executionReport;
-
+  private final ReportService reportService;
   @Getter
   public final DiscordNotifier notifier;
   private final Map<Long, ButtonAction> userStates = new ConcurrentHashMap<>();
 
   public PkpmTelegramBot(String botUsername, String botToken, Long groupId, String usersListString,
-      String graphName, DiscordNotifier notifier) {
+      String graphName, DiscordNotifier notifier, ReportService reportService) {
     this.botUsername = botUsername;
     this.botToken = botToken;
     this.groupId = groupId;
     this.verifiedUsers = List.of(usersListString.split(";"));
     this.graphName = graphName;
     this.notifier = notifier;
-    this.executionReport = new GraphExecutionReport();
+    this.reportService = reportService;
   }
 
   @Override
@@ -76,13 +71,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
    * @return - булеве значення результату верифікації
    */
   private boolean verifyUsersIdList(Long chatId) {
-    List<String> userList = getVerifyUsersIdList();
-    for (String user : userList) {
-      if (user.equals(chatId.toString())) {
-        return true;
-      }
-    }
-    return false;
+    return this.verifiedUsers.contains(chatId.toString());
   }
 
   @Override
@@ -130,20 +119,20 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
 
   private void selectMenuAction(String messageText, Long chatId, ButtonAction currentUserAction) {
     if (checkMessageIsButton(messageText)) {
-      log.warn("Натиснута кнопка ...");
+      log.info("Натиснута кнопка ...");
       Buttons button = checkWhichButtonPressed(messageText);
       currentUserAction.setButton(button);
       sendAdditionalMessage(chatId, currentUserAction);
       if (!currentUserAction.isAdditionalDialogue()) {
-        log.warn("Запущена дія кнопки ...");
+        log.info("Запущена дія кнопки ...");
         makeButtonAction(chatId, messageText, currentUserAction);
       }
     } else if (currentUserAction != null && currentUserAction.isAdditionalDialogue()) {
-      log.warn("Запущена дія кнопки з additional ...");
+      log.info("Запущена дія кнопки з additional ...");
       currentUserAction.setMessageDate(messageText);
       makeButtonAction(chatId, messageText, currentUserAction);
     } else {
-      log.warn("Вивід меню ...");
+      log.info("Вивід меню ...");
       userStates.remove(chatId);
       sendMenu(chatId);
     }
@@ -200,12 +189,12 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
         sendReplyButtons(chatId, ChatMessage.INFORM_CHANGE_1.getMessage());
       }
       case BUTTON_6 -> {
-        log.warn("Формую загальний звіт та вивожу в чат telegram:");
+        log.info("Формую загальний звіт та вивожу в чат telegram:");
         createReportGeneralAndSendMessage(chatId, graphName);
         userStates.remove(chatId);
       }
       case BUTTON_7 -> {
-        log.warn("Формую звіт по виконавцям та вивожу в чат telegram:");
+        log.info("Формую звіт по виконавцям та вивожу в чат telegram:");
         sendInlineEmployeesButtons(chatId, "Оберіть виконавця \uD83D\uDC47");
       }
       default -> log.info("Something wrong with menuButtonAction()!");
@@ -247,17 +236,12 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
   }
 
   private void createReportGeneralAndSendMessage(Long chatId, String graphName) {
-    List<ReportGeneral> listOfResults = executionReport.getDateForGeneralReport(
-        new MakeSnapshot(graphName).getBs());
-    String report = executionReport.writeResultToString(listOfResults);
+    String report = reportService.createGeneralReport(graphName);
     sendMessage(createMessage(chatId, report));
   }
 
   private void createReportEmployeesAndSendMessage(Long chatId, String graphName, String employee) {
-    Map<Employees, List<ReportEmployee>> result = executionReport.getListOfEmployeesReports(
-        new MakeSnapshot(graphName).getBs());
-    String report = executionReport.writeResulForReportEmployeetToString(
-        result.get(Employees.fromName(employee)));
+    String report = reportService.createEmployeeReport(graphName, employee);
     sendMessage(createMessage(chatId, report));
   }
 
@@ -323,7 +307,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     try {
       execute(InlineKeyboardBuilder.removeKeyboard(chatId, messageId));
     } catch (TelegramApiException e) {
-      log.warn("You have exception, when you try send message!");
+      log.error("Failed to remove keyboard for chatId {}: {}", chatId, e.getMessage(), e);
     }
   }
 
@@ -389,7 +373,7 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
     try {
       execute(message);
     } catch (TelegramApiException e) {
-      log.warn("You have exception, when you try send message!");
+      log.error("Failed to send message to chatId {}: {}", message.getChatId(), e.getMessage(), e);
     }
   }
 
@@ -410,5 +394,4 @@ public class PkpmTelegramBot extends TelegramLongPollingBot {
       MessageReader.clean(fileName);
     }
   }
-
 }
