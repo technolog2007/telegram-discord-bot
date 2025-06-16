@@ -56,4 +56,8 @@ public class DiscordNotifier {
       log.error("Error sending: {}. Message: {}", responseCode, jsonPayload);
     }
   }
+
+  private void deleteMessage(){
+
+  }
 }
