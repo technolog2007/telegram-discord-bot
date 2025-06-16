@@ -70,7 +70,7 @@ public class DiscordCorrectionBot extends ListenerAdapter {
           (Void) -> { // 'Void' тому що delete() нічого не повертає при успіху
             event.getChannel().sendMessage(
                 "Повідомлення від " + event.getAuthor().getAsMention()
-                    + ": " + correctedMessage).queue(
+                    + ": \n" + correctedMessage).queue(
                 (message) -> log.info("Successfully sent corrected message in channel {}.",
                     channelId),
                 (error) -> log.error(
