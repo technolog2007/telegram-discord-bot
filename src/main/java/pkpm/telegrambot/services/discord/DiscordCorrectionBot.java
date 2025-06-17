@@ -109,8 +109,8 @@ public class DiscordCorrectionBot extends ListenerAdapter {
   private String analyzeAndCorrectSyntax(String text) {
     String corrected = text;
 
-    if (corrected.toLowerCase().contains("_")) {
-      corrected = corrected.replace("_", "\\_");
+    if (corrected.toLowerCase().contains("_") || corrected.toLowerCase().contains("\\")) {
+      corrected = corrected.replace("\\", "\\\\" ).replace("_", "\\_");
     }
     return corrected;
   }
